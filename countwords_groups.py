@@ -144,15 +144,12 @@ def get_freq_dist(recv, send, fd=None, dcount_smile=None, classes=None):
                 fd['all'].update(fd[cls])
                 dcount_smile['all'].update(dcount_smile[cls])
 
-            # send word counters to the main process
-            send.send([(cls, sorted(freq.items(),
-                                    key=itemgetter(1),
-                                    reverse=True)[:1000])
+            ## send word counters to the main process
+            ## TODO: change it into Counter.most_commons(1000)
+            send.send([(cls, freq.most_common(1000))
                        for cls, freq in fd.iteritems()])
             # send smile counters to the main process
-            send.send([(cls, sorted(counters.items(),
-                                    key=itemgetter(1),
-                                    reverse=True))
+            send.send([(cls, counters.items())
                        for cls, counters in dcount_smile.iteritems()])
 
             return
@@ -311,7 +308,7 @@ def main():
             print >> out, '#msgs: ', sum(users['weighted_indegree'])
             for k, v in counters:
                 print >> out, v, k
-        del fd
+        del counters
 
     p.join()
 
