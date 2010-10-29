@@ -342,6 +342,9 @@ def explode_dump_filename(fn):
     >>> explode_dump_filename( \
             "/tmp/itwiki-20100218-pages-meta-current.xml.bz2")
     ('it', '20100218', '-pages-meta-current')
+    >>> explode_dump_filename( \
+            "/tmp/emlwiki-20101023-stub-meta-history_rich.pickle")
+    ('eml', '20101023', '-stub-meta-history_rich')
     """
     from os.path import split
 
