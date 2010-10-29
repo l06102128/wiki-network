@@ -5,6 +5,7 @@ import os
 import sys
 from datetime import datetime as dt, timedelta as td
 import logging
+from copy import deepcopy
 
 ## PROJECT
 from sonet.timr import Timr
@@ -48,8 +49,12 @@ def main():
     d = args.start
         
     while d < args.end:
-        print d, args.time_window
-        d += td(args.time_window)
+        e = d + td(args.time_window)
+        g_tmp = deepcopy(g)
+        g_tmp.time_slice_subgraph(start=d, end=e)
+        print g_tmp.g.summary()
+        del g_tmp
+        d = e        
         
 if __name__ == '__main__':
     main()
