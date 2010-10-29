@@ -16,9 +16,8 @@ def create_option_parser():
     
     op = argparse.ArgumentParser(description='Process a graph file running a longitudinal analysis over it.')
 
-    op.add_argument('-S', '--start', action="store", dest='start',
-                          type=lib.yyyymmdd_to_datetime, default=None, metavar="YYYYMMDD",
-                          help="Look for revisions starting from this date")
+    op.add_argument('-S', '--start', type=lib.yyyymmdd_to_datetime, metavar="YYYYMMDD",
+                          help="Look for revisions starting from this date", default="20010101")
     op.add_argument('-E', '--end', action="store", dest='end',
                           type=lib.yyyymmdd_to_datetime, default=None, metavar="YYYYMMDD",
                           help="Look for revisions until this date")
@@ -45,6 +44,12 @@ def main():
     ## of the dump
     if not args.end:
         args.end = lib.yyyymmdd_to_datetime(date_)
+        
+    d = args.start
+        
+    while d < args.end:
+        print d, args.time_window
+        d += td(args.time_window)
         
 if __name__ == '__main__':
     main()
