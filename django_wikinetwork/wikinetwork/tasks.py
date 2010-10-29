@@ -17,7 +17,7 @@ class AnalyseTask(Task):
         fn = sorted(glob(files))[-1]
         logger.info("Running: %s, filename: %s" % (lang, fn))
         
-        cmd = "/sra0/sra/setti/Source/wiki-network/analysis.py --as-table --group %s %s" % (' '.join(options), fn)
+        cmd = "/sra0/sra/setti/Source/wiki-network/graph_analysis.py --save-db --group %s %s" % (' '.join(options), fn)
         logger.info(cmd)
         
         p = Popen(cmd, shell=True, stderr=PIPE)

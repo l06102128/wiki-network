@@ -231,12 +231,12 @@ def celery(request):
     else:
 
         #assert False, sys.path
-        import analysis
+        import graph_analysis as analysis
 
         op = analysis.create_option_parser()
 
         options = [o._long_opts[0] for o in op.option_list]
-        options.remove('--as-table')
+        options.remove('--save-db')
         options.remove('--help')
         options.remove('--group')
 
