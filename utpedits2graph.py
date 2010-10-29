@@ -18,6 +18,9 @@ import os
 import sys
 import re
 
+## UTILS
+from django.utils.encoding import smart_str
+
 ## PROJECT LIBS
 from sonet.edgecache import EdgeCache
 import sonet.mediawiki as mwlib
@@ -78,13 +81,13 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             kwargs['ecache'] = EdgeCache()
         super(HistoryPageProcessor, self).__init__(**kwargs)
 
-    def process_title(self, elem):
+    def process_title(self, elem):       
         if self._skip_revision: return
 
         title = elem.text
         a_title = title.split(':')
 
-        if len(a_title) > 1 and a_title[0] in self.user_talk_names:
+        if len(a_title) > 1 and smart_str(a_title[0]) in self.user_talk_names:
             self._receiver = mwlib.normalize_pagename(a_title[1])
         else:
             self._skip = True
@@ -124,6 +127,9 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         if sender_tag is None:
             try:
                 self._sender = contributor.find(self.tag['ip']).text
+                if self._sender is None:
+                    self._skip_revision = True
+                    self.counter_deleted += 1
             except AttributeError:
                 ## user deleted
                 self._skip_revision = True
@@ -133,14 +139,18 @@ class HistoryPageProcessor(mwlib.PageProcessor):
                 self._sender = mwlib.normalize_pagename(sender_tag.text)
             except AttributeError:
                 ## if username is defined but empty, look for id tag
-                self._sender = contributor.find(self.tag['id']).text
-
+                try:
+                    self._sender = contributor.find(self.tag['id']).text
+                except KeyError:
+                    self._skip_revision = True
+                
     def process_revision(self, _):
         skip = self._skip_revision
         self._skip_revision = False
         welcome, self._welcome = self._welcome, False
+        
         if skip: return
-
+        
         assert self._sender is not None, "Sender still not defined"
         assert self._receiver is not None, "Receiver still not defined"
         self.ecache.add(self._receiver, {
@@ -176,6 +186,15 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         print >>sys.stderr, 'ARCHIVES: ', self.count_archive
         print >>sys.stderr, 'DELETED: ', self.counter_deleted
 
+    
+def save_graph(g, lang, type_, date_):
+    
+    for e in g.es:
+        e['weight'] = len(e['timestamp'])
+        #e['timestamp'] = str(e['timestamp'])
+    with Timr('Pickling'):
+        g.write("%swiki-%s%s.pickle" % (lang, date_, type_), format="pickle")
+    #g.write("%swiki-%s%s.graphmlz" % (lang, date_, type_), format="graphmlz")
 
 def opt_parse():
     from optparse import OptionParser
@@ -183,6 +202,7 @@ def opt_parse():
 
     p = OptionParser(usage="usage: %prog [options] dumpfile",
                      option_class=SonetOption)
+    p.description('Count edits on User Talk Pages and create a graph from it. Save the graph as a pickled iGraph object.')
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
@@ -217,9 +237,14 @@ def main():
         tags='page,title,revision,timestamp,contributor,username,ip,comment')
 
     translations = mwlib.get_translations(src)
-    lang_user = unicode(translations['User'])
-    lang_user_talk = unicode(translations['User talk'])
-
+    
+    try:
+        lang_user = unicode(translations['User'])
+        lang_user_talk = unicode(translations['User talk'])
+    except UnicodeDecodeError:
+        lang_user = smart_str(translations['User'])
+        lang_user_talk = smart_str(translations['User talk'])
+    
     assert lang_user, "User namespace not found"
     assert lang_user_talk, "User Talk namespace not found"
 
@@ -242,13 +267,7 @@ def main():
     print >>sys.stderr, "Nodes:", len(g.vs)
     print >>sys.stderr, "Edges:", len(g.es)
 
-    for e in g.es:
-        e['weight'] = len(e['timestamp'])
-        #e['timestamp'] = str(e['timestamp'])
-    with Timr('Pickling'):
-        g.write("%swiki-%s%s.pickle" % (lang, date_, type_), format="pickle")
-    #g.write("%swiki-%s%s.graphmlz" % (lang, date_, type_), format="graphmlz")
-
+    save_graph(g, lang, type_, date_)
 
 if __name__ == "__main__":
     #import cProfile as profile
