@@ -1,24 +1,24 @@
-DATASET=${HHOME}/datasets/wikipedia
-SOURCE=~/Source/wiki-network/
+DATASET=${HHOME}/datasets/wikipedia/${LANG}
+SOURCE=~/dev/repos/wiki-network
 
 graph:
-	cd ${DATASET} ; ${SOURCE}/wikixml2graph.py ${LANG}wiki-${DATE}-pages-meta-current.xml.bz2
+	cd ${DATASET} ; ${SOURCE}/utpedits2graph.py ${LANG}wiki-${DATE}-${TYPE}.xml.${EXT}
 
 enrich:
-	cd ${DATASET} ; ${SOURCE}/enrich.py ${LANG}wiki-${DATE}.pickle
+	cd ${DATASET} ; ${SOURCE}/graph_enrich.py ${LANG}wiki-${DATE}-${TYPE}.pickle
 
 hist:
-	cd ${SOURCE} ; ./analysis.py -cg ${DATASET}/${LANG}wiki-${DATE}_rich.pickle
+	cd ${SOURCE} ; ./graph_analysis.py -c all -g ${DATASET}/${LANG}wiki-${DATE}-${TYPE}_rich.pickle
 
 analysis:
-	cd ${SOURCE} ; ./analysis.py --as-table --group -derc --distance --power-law ${DATASET}/${LANG}wiki-${DATE}_rich.pickle
+	cd ${SOURCE} ; ./graph_analysis.py --save-db --group -der --distance --power-law ${DATASET}/${LANG}wiki-${DATE}-${TYPE}_rich.pickle
 
 param-analysis:
-	cd ${SOURCE} ; ./analysis.py ${PARAMS} ${DATASET}/${LANG}wiki-${DATE}_rich.pickle
+	cd ${SOURCE} ; ./graph_analysis.py ${PARAMS} ${DATASET}/${LANG}wiki-${DATE}-${TYPE}_rich.pickle
 
 
 centrality:
-	cd ${SOURCE} ; ./analysis.py --as-table --group -c ${DATASET}/${LANG}wiki-${DATE}_rich.pickle
+	cd ${SOURCE} ; ./graph_analysis.py --save-db --group -c all ${DATASET}/${LANG}wiki-${DATE}-${TYPE}_rich.pickle
 
 all-hist: graph enrich hist
 
