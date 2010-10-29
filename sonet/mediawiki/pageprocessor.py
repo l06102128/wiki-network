@@ -28,6 +28,7 @@ class PageProcessor(object):
             if not inspect.ismethod(member): continue
             dfunc[tag[member_name[8:]]] = member
 
+
         ## iterate over tags. skip if not in dfunc.
         ## self._skip is set by process_*() methods if all the tags have to be
         ## discarded up to the next page-tag (</page>)
@@ -80,7 +81,10 @@ class HistoryPageProcessor(PageProcessor):
                               if l and not l[0][0] == '#'])
 
     def is_desired(self, title):
-        return (title in self.desired_pages)
+        try:
+            return (title in self.desired_pages)
+        except TypeError:
+            return False
 
     def delattr(self, attrs):
         for attr in attrs:
