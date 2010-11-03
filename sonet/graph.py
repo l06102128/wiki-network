@@ -251,15 +251,16 @@ class Graph(object):
         if start is None and end is None:
             return
         for e in g.es:
-            e[time_label] = [message for message in e[time_label]
-                              if (start is None or start < message.time)
-                              and (end is None or end > message.time)]
+            e[time_label] = [m for m in e[time_label]
+                              if ((start is None or start < m.time)
+                              and (end is None or end > m.time))]
             e[weight_label] = len(e[time_label])
         if remove_empty_edges:
             kwargs = {weight_label: 0}
             g.delete_edges(**kwargs)
         if remove_isolated_nodes:
-            g.delete_vertices(g.vs.select(_indegree=0, _outdegree=0))
+            # non_isolated vertices = g.vs.select(_degree_gt=0)
+            g.delete_vertices(g.vs.select(_degree_eq=0))
 
     def set_role(self, classes):
         if not classes:
