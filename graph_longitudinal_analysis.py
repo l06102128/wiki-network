@@ -15,6 +15,7 @@ from sonet import mediawiki as mwlib, graph as sg, lib
 
 def process_graph(graph, start, end):
     print start, end
+    ## create a sub-graph on time boundaries
     graph.time_slice_subgraph(start=start, end=end)
     print_graph_stat(graph.g)
     del graph
@@ -51,7 +52,8 @@ def main():
     except IOError:
         print "unable to load a graph from passed file:", args.file_name
         return
-        
+
+    ## explode dump filename in order to obtain wiki lang, dump date and type
     lang, date_, type_ = mwlib.explode_dump_filename(args.file_name)
     
     ## if end argument is not specified, then use the date
@@ -62,12 +64,14 @@ def main():
     start, end, tw = args.start, args.end, args.time_window
     cumulative = args.cumulative
     freq = args.frequency if args.frequency and not cumulative else tw
-            
+
     freq_range = int( ceil( ( (end - start).days + 1) / float(freq) ) )
-    
+
+    ## date range used for sub-graph analysis
     for d in [start + timedelta(freq * d) for d in range(freq_range)]:
         s = start if cumulative else d
         process_graph(graph=deepcopy(g), start=s, end=d + timedelta(tw))
+        
         
 if __name__ == '__main__':
     main()
