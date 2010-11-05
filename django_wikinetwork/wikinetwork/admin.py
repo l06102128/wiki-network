@@ -45,7 +45,7 @@ class WikiRunGroupDataAdmin(admin.ModelAdmin):
     date_hierarchy  = 'created'
 
 class WikiStatAdmin(admin.ModelAdmin):
-    list_display    = ('lang', 'created')
+    list_display    = ('lang', 'family', 'created')
     list_filter     = ('lang',)
     date_hierarchy  = 'created'
 
