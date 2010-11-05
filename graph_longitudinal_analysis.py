@@ -14,11 +14,9 @@ from sonet.timr import Timr
 from sonet import mediawiki as mwlib, graph as sg, lib
 
 def process_graph(graph, start, end):
-    print start, end
     ## create a sub-graph on time boundaries
     graph.time_slice_subgraph(start=start, end=end)
     print_graph_stat(graph.g)
-    del graph
     
 def print_graph_stat(g):
     print g.summary()
@@ -55,23 +53,30 @@ def main():
 
     ## explode dump filename in order to obtain wiki lang, dump date and type
     lang, date_, type_ = mwlib.explode_dump_filename(args.file_name)
-    
-    ## if end argument is not specified, then use the date
-    ## of the dump
-    if not args.end:
-        args.end = lib.yyyymmdd_to_datetime(date_)
-                
-    start, end, tw = args.start, args.end, args.time_window
-    cumulative = args.cumulative
-    freq = args.frequency if args.frequency and not cumulative else tw
+                    
+    start, tw = args.start, args.time_window
+    ## if end argument is not specified, then use the dump date
+    end = args.end if args.end else lib.yyyymmdd_to_datetime(date_)
+    ## frequency not to be considered in case of cumulative analysis
+    freq = args.frequency if args.frequency and not args.cumulative else tw
 
     freq_range = int( ceil( ( (end - start).days + 1) / float(freq) ) )
 
-    ## date range used for sub-graph analysis
-    for d in [start + timedelta(freq * d) for d in range(freq_range)]:
-        s = start if cumulative else d
-        process_graph(graph=deepcopy(g), start=s, end=d + timedelta(tw))
+    with Timr("Longitudinal analysis"):
+        ## date range used for sub-graph analysis
+        for d in [start + timedelta(freq * d) for d in range(freq_range)]:
+            ## if analysing in a cumulative way, keep start date fixed
+            s = start if args.cumulative else d
+            ## deepcopy the graph into memory
+            g2 = deepcopy(g)
+            process_graph(graph=g2, start=s, end=d + timedelta(tw))
+            del g2
         
         
 if __name__ == '__main__':
+    # import cProfile as profile
+    # profile.run('main()', 'mainprof')
     main()
+    ## NOT WORKING WITH PYTHON2.7
+    # h = guppy.hpy()
+    # print h.heap()
