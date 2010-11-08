@@ -13,21 +13,72 @@ from math import ceil
 from sonet.timr import Timr
 from sonet import mediawiki as mwlib, graph as sg, lib
 
-def process_graph(graph, start, end):
-    df = "%Y-%m-%d %H:%M"
-    ## create a sub-graph on time boundaries
-    logging.info("SINCE %s TO %s" % (
-        start.strftime(df), end.strftime(df))
-    )
-    graph.time_slice_subgraph(start=start, end=end)
-    print_graph_stat(graph.g)
-    del graph
-    
-def print_graph_stat(g):
-    print g.summary()
-    print
-    del g
 
+def graph_loader(file_name):
+    try:
+        with Timr("GRAPH LOADING"):
+            return sg.load(file_name)
+    except IOError:
+        print "unable to load a graph from passed file:", file_name
+        sys.exit()
+
+        
+def cumulative_analysis(fn, start, end, freq):
+    
+    graph = graph_loader(fn) ## loading graph
+    
+    freq_range = int( ceil( ( (end - start).days + 1) / float(freq) ) )
+    for d in range(freq_range):
+        s, e = start, end - timedelta(d * freq)
+        
+        if e <= s: continue
+            
+        ## processing
+        if s <> start or e <> end:
+            with Timr("SUBGRAPHING"):
+                process_graph(graph, s, e) 
+
+        ## printing stats
+        print_graph_stats(graph.g)
+            
+    return
+        
+def time_slice_analysis(fn, start, end, freq, time_window):
+
+    ## date range used for sub-graph analysis
+    freq_range = int( ceil( ( (end - start).days + 1) / float(freq) ) )
+    for s in [start + timedelta(freq * d) for d in range(freq_range)]:
+        
+        d = s + timedelta(time_window)
+        e = d if (d <= end) else end + timedelta(1)
+
+        graph = graph_loader(fn) ## loading graph
+        
+        ## processing
+        if s <> start or e <> end:
+            process_graph(graph, s, e)
+            
+        ## printing stats
+        print_graph_stats(graph.g)
+
+        ## saving memory 
+        del graph
+        gc.collect()
+
+def process_graph(graph, start, end):
+    
+    df = "%Y-%m-%d %H:%M"
+    logging.info("SINCE %s TO %s" % (start.strftime(df), end.strftime(df)))
+
+    ## create a sub-graph on time boundaries
+    graph.time_slice_subgraph(start=start, end=end)
+
+    
+def print_graph_stats(g):
+
+    logging.info("Nodes: %d - Edges: %d\n" % (len(g.vs), len(g.es)))
+    
+    
 def create_option_parser():
     import argparse
     from sonet.lib import SonetOption
@@ -46,6 +97,7 @@ def create_option_parser():
     
     return p
 
+
 def main():
 
     logging.basicConfig(#filename="graph_longiudinal_analysis.log",
@@ -54,39 +106,25 @@ def main():
     logging.info('---------------------START---------------------')
     
     op = create_option_parser()
-
     args = op.parse_args()
     
-
-
     ## explode dump filename in order to obtain wiki lang, dump date and type
     lang, date_, type_ = mwlib.explode_dump_filename(args.file_name)
                     
-    start, tw = args.start, args.time_window
+    fn, start, tw = args.file_name, args.start, args.time_window
     ## if end argument is not specified, then use the dump date
     end = args.end if args.end else lib.yyyymmdd_to_datetime(date_)
     ## frequency not to be considered in case of cumulative analysis
     freq = args.frequency if (args.frequency and not args.cumulative) else tw
+    
+    if args.cumulative:
+        logging.info("Cumulative longitudinal analysis, not considering following option: frequency")
 
-    freq_range = int( ceil( ( (end - start).days + 1) / float(freq) ) )
-
-    with Timr("LONGITUDINAL ANALYSIS"):
-        ## date range used for sub-graph analysis
-        for d in [start + timedelta(freq * d) for d in range(freq_range)]:
-            ## if analysing in a cumulative way, keep start date fixed
-            s = start if args.cumulative else d
-            e = d + timedelta(tw) if (d + timedelta(tw) <= end) else end + timedelta(1)
-
-            ## graph loading
-            try:
-                g = sg.load(args.file_name)
-            except IOError:
-                print "unable to load a graph from passed file:", args.file_name
-                return
-            
-            process_graph(graph=g, start=s, end=e)
-            del g
-            gc.collect()
+    with Timr("RUNNING ANALYSIS"):
+        if args.cumulative:
+            cumulative_analysis(fn, start, end, freq)
+        else:
+            time_slice_analysis(fn, start, end, freq, tw)
         
         
 if __name__ == '__main__':
