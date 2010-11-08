@@ -15,6 +15,9 @@ from sonet import mediawiki as mwlib, graph as sg, lib
 
 
 def graph_loader(file_name):
+    """
+    Loads a sonet.graph object from a pickle/graphml/... file
+    """
     try:
         with Timr("GRAPH LOADING"):
             return sg.load(file_name)
@@ -85,6 +88,7 @@ def create_option_parser():
     
     p = argparse.ArgumentParser(description='Process a graph file running a longitudinal analysis over it.')
 
+    ## optional parameters
     p.add_argument('-s', '--start', type=lib.yyyymmdd_to_datetime, metavar="YYYYMMDD",
                           help="Look for revisions starting from this date", default="20010101")
     p.add_argument('-e', '--end', action="store", dest='end',
@@ -93,6 +97,7 @@ def create_option_parser():
     p.add_argument('-t', '--time-window', help='length for each time window (default: %(default)s)', type=int, default=7)
     p.add_argument('-f', '--frequency', help='time window frequency', type=int, default=0)
     p.add_argument('-c', '--cumulative', help='cumulative graph analysis, fixed start date', action='store_true')
+    ## positional arguments
     p.add_argument('file_name', help="file containing the graph to be analyzed")
     
     return p
