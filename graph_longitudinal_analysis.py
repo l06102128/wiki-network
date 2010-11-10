@@ -22,7 +22,7 @@ def graph_loader(file_name):
         with Timr("GRAPH LOADING"):
             return sg.load(file_name)
     except IOError:
-        print "unable to load a graph from passed file:", file_name
+        logging.exception("unable to load a graph from passed file: %s" % (file_name,))
         sys.exit()
 
         
@@ -71,7 +71,7 @@ def time_slice_analysis(fn, start, end, freq, time_window):
 def process_graph(graph, start, end):
     
     df = "%Y-%m-%d %H:%M"
-    logging.info("SINCE %s TO %s" % (start.strftime(df), end.strftime(df)))
+    logging.debug("SINCE %s TO %s" % (start.strftime(df), end.strftime(df)))
 
     ## create a sub-graph on time boundaries
     graph.time_slice_subgraph(start=start, end=end)
@@ -79,7 +79,7 @@ def process_graph(graph, start, end):
     
 def print_graph_stats(g):
 
-    logging.info("Nodes: %d - Edges: %d\n" % (len(g.vs), len(g.es)))
+    logging.debug("Nodes: %d - Edges: %d\n" % (len(g.vs), len(g.es)))
     
     
 def create_option_parser():
