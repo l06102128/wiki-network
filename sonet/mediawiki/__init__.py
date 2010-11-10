@@ -371,14 +371,19 @@ def normalize_pagename(s):
 
     >>> normalize_pagename('_tesT__')
     'TesT'
+    >>> normalize_pagename('a')
+    'A'
     """
     # replace underscore with whitespaces and remove leading and trailing
     # spaces
     s = s.replace('_', ' ').strip()
 
     # then capfirst
-    return (s[0].upper() + s[1:])
-
+    try:
+        return (s[0].upper() + s[1:])
+    except IndexError:
+        raise AttributeError
+    
 
 def count_renames(lang):
     url = base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list='+\
