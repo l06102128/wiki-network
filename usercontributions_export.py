@@ -18,6 +18,7 @@ from sqlalchemy import select, func
 
 import logging
 import time
+import sys
 from base64 import b64decode
 from zlib import decompress
 from wbin import deserialize
@@ -53,8 +54,8 @@ def user_iter(lang = 'en', paginate=10000000):
             ))) if v['namespace_edits'] is not None else None
             yield v
 
-def prepare_data(namespaces):
-    for user in user_iter():
+def prepare_data(namespaces, lang):
+    for user in user_iter(lang=lang):
         if user['namespace_edits'] is None:
             user['namespace_edits'] = [0,]*len(namespaces)
         for i, namespace_edit in enumerate(user['namespace_edits']):
@@ -91,6 +92,7 @@ def main():
 
     xml, out = get_xml_file()
 
+    lang, date_, type_ = mwlib.explode_dump_filename(xml)
     deflate, _lineno = find_open_for_this_file(xml)
 
     if _lineno:
@@ -112,8 +114,8 @@ def main():
     ## to get only the first 1000 users:
     #from itertools import islice
     #data_iterator = islice(prepare_data(namespaces), 1000)
-    data_iterator = prepare_data(namespaces)
-
+    data_iterator = prepare_data(namespaces, lang)
+    
     count = 0
     for user in data_iterator:
         dw.writerow(user)
