@@ -84,8 +84,7 @@ def print_graph_stats(g):
     
 def create_option_parser():
     import argparse
-    from sonet.lib import SonetOption
-    
+        
     p = argparse.ArgumentParser(description='Process a graph file running a longitudinal analysis over it.')
 
     ## optional parameters
@@ -98,7 +97,7 @@ def create_option_parser():
     p.add_argument('-f', '--frequency', help='time window frequency', type=int, default=0)
     p.add_argument('-c', '--cumulative', help='cumulative graph analysis, fixed start date', action='store_true')
     ## positional arguments
-    p.add_argument('file_name', help="file containing the graph to be analyzed")
+    p.add_argument('file_name', help="file containing the graph to be analyzed", metavar="GRAPH_FILE")
     
     return p
 
