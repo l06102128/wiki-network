@@ -129,7 +129,7 @@ def main():
     lang, date_, type_ = mwlib.explode_dump_filename(xml)
     deflate, _lineno = find_open_for_this_file(xml)
     
-    date_ = yyyymmdd_to_datetime(date_)
+    date_ = yyyymmdd_to_datetime(date_, 1)
 
     if _lineno:
         src = deflate(xml, 51)
@@ -157,6 +157,9 @@ def main():
     
     count = 0
     for user in data_iterator:
+        for k, v in user.iteritems():
+            if type(v) in [int, float]:
+                assert v >= 0, "%s is negative" % (k,)
         dw.writerow(user)
 
         count += 1
