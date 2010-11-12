@@ -1,19 +1,28 @@
 import os
 import sys
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 from optparse import Option
 from copy import copy
 
-def yyyymmdd_to_datetime(yyyymmdd):
+def yyyymmdd_to_datetime(yyyymmdd, td = None):
     """
     Given a string containing a date in YYYYMMDD format, returns a datetime
     object.
 
     >>> yyyymmdd_to_datetime("20091231")
     datetime.datetime(2009, 12, 31, 0, 0)
+    >>> yyyymmdd_to_datetime("20091231", -1)
+    datetime.datetime(2009, 12, 30, 0, 0)
+    >>> yyyymmdd_to_datetime("20091231", 15)
+    datetime.datetime(2010, 1, 15, 0, 0)
     """
-    return datetime.strptime(yyyymmdd, "%Y%m%d")
+    d = datetime.strptime(yyyymmdd, "%Y%m%d")
+
+    if td:
+        d += timedelta(td)
+
+    return d
 
 
 def yyyymmdd_check(option, opt, value):
