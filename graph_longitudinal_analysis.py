@@ -27,6 +27,8 @@ def graph_loader(file_name):
 
         
 def cumulative_analysis(fn, start, end, freq):
+
+    logging.info("running cumulative analysis")
     
     graph = graph_loader(fn) ## loading graph
     
@@ -43,10 +45,15 @@ def cumulative_analysis(fn, start, end, freq):
 
         ## printing stats
         print_graph_stats(graph.g)
-            
+    del graph
+
     return
         
 def time_slice_analysis(fn, start, end, freq, time_window):
+
+    logging.info("running time-slice analysis")
+
+    counter = 0
 
     ## date range used for sub-graph analysis
     freq_range = int( ceil( ( (end - start).days + 1) / float(freq) ) )
@@ -65,8 +72,11 @@ def time_slice_analysis(fn, start, end, freq, time_window):
         print_graph_stats(graph.g)
 
         ## saving memory 
-        del graph
-        gc.collect()
+        del graph.g, graph
+
+        if not counter % 10:
+            logging.info(counter + 'analysis')
+            gc.collect()
 
 def process_graph(graph, start, end):
     
@@ -122,7 +132,7 @@ def main():
     freq = args.frequency if (args.frequency and not args.cumulative) else tw
     
     if args.cumulative:
-        logging.info("Cumulative longitudinal analysis, not considering following option: frequency")
+        logging.info("Cumulative longitudinal analysis chosen, hence not considering following option: frequency")
 
     with Timr("RUNNING ANALYSIS"):
         if args.cumulative:
