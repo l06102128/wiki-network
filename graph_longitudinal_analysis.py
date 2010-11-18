@@ -75,7 +75,7 @@ def time_slice_analysis(fn, start, end, freq, time_window):
         del graph.g, graph
 
         if not counter % 10:
-            logging.info(counter + 'analysis')
+            logging.info(counter)
             gc.collect()
 
 def process_graph(graph, start, end):
