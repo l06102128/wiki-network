@@ -17,6 +17,8 @@ from datetime import datetime
 import os
 import sys
 import re
+import logging
+
 
 ## UTILS
 from django.utils.encoding import smart_str
@@ -26,6 +28,8 @@ from sonet.edgecache import EdgeCache
 import sonet.mediawiki as mwlib
 from sonet.lib import find_open_for_this_file
 from sonet.timr import Timr
+
+from collections import defaultdict
 
 class HistoryPageProcessor(mwlib.PageProcessor):
     """
@@ -81,7 +85,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             kwargs['ecache'] = EdgeCache()
         super(HistoryPageProcessor, self).__init__(**kwargs)
 
-    def process_title(self, elem):       
+    def process_title(self, elem):  
+        self.delattr(("_counter", "_type", "_title", "_skip", "_date", "_receiver"))
         if self._skip_revision: return
 
         title = elem.text
@@ -99,6 +104,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._skip = True
         except ValueError:
             pass
+        finally:
+            del title, a_title
 
     def process_timestamp(self, elem):
         if self._skip_revision: return
@@ -116,6 +123,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._skip_revision = True
         else:
             self._time = revision_time
+            
+        del revision_time
 
     def process_contributor(self, contributor):
         if self._skip_revision: return
@@ -157,41 +166,54 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._sender: [mwlib.Message(self._time, welcome),]
                            })
         self._sender = None
+        self._time = None
 
     def process_page(self, _):
         if self._skip:
             self._skip = False
             return
 
-        self._receiver = None
-
         self.count += 1
         if not self.count % 500:
             print >>sys.stderr, self.count
+            
+    def delattr(self, attrs):
+        for attr in attrs:
+            try:
+                delattr(self, attr)
+            except AttributeError:
+                pass
 
     def process_comment(self, elem):
         if self._skip_revision: return
+        if not self.__welcome_pattern: return
         assert self._welcome == False, 'processor._welcome is True!'
         #print elem.text.encode('utf-8')
         if not elem.text: return
         if self._re_welcome.search(elem.text):
             self._welcome = True
-
+            
     def get_network(self):
         self.ecache.flush()
         return self.ecache.get_network(edge_label='timestamp')
 
     def end(self):
-        print >>sys.stderr, 'TOTAL UTP: ', self.count
-        print >>sys.stderr, 'ARCHIVES: ', self.count_archive
-        print >>sys.stderr, 'DELETED: ', self.counter_deleted
+        logging.info('TOTAL UTP: %d' % self.count)
+        logging.info('ARCHIVES: %d' % self.count_archive)
+        logging.info('DELETED: %d' % self.counter_deleted)
 
     
 def save_graph(g, lang, type_, date_):
     
-    for e in g.es:
-        e['weight'] = len(e['timestamp'])
-        #e['timestamp'] = str(e['timestamp'])
+    counter = 0
+    with Timr('Setting weight attribute on edges'):
+        for e in g.es:
+            e['weight'] = len(e['timestamp'])
+            #e['timestamp'] = str(e['timestamp'])
+            counter += 1
+            if not counter % 10000:
+                logging.debug(counter)
+        
     with Timr('Pickling'):
         g.write("%swiki-%s%s.pickle" % (lang, date_, type_), format="pickle")
     #g.write("%swiki-%s%s.graphmlz" % (lang, date_, type_), format="graphmlz")
@@ -220,6 +242,12 @@ def opt_parse():
 
 
 def main():
+
+    logging.basicConfig(#filename="graph_longiudinal_analysis.log",
+                                stream=sys.stderr,
+                                level=logging.DEBUG)
+    logging.info('---------------------START---------------------')
+    
     opts, args = opt_parse()
     xml = args[0]
 
@@ -227,6 +255,13 @@ def main():
     lang, date_, type_ = mwlib.explode_dump_filename(xml)
 
     deflate, _lineno = find_open_for_this_file(xml)
+    
+    welcome = defaultdict(str)
+    
+    welcome.update({
+        'it': r'Benvenut'
+        ,'en': r'Welcome'
+    })
 
     if _lineno:
         src = deflate(xml, 51)
@@ -249,25 +284,25 @@ def main():
     assert lang_user_talk, "User Talk namespace not found"
 
     src.close()
-    print >>sys.stderr, "BEGIN PARSING"
     src = deflate(xml)
 
     processor = HistoryPageProcessor(tag=tag,
         user_talk_names=(lang_user_talk, u"User talk"))
     processor.time_start = opts.start
     processor.time_end = opts.end
-    ##TODO: only works on it.wikipedia.org! :-)
-    processor.welcome_pattern = r'Benvenut'
+    processor.welcome_pattern = welcome[lang]
+    
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
 
     with Timr('EdgeCache.get_network()'):
         g = processor.get_network()
 
-    print >>sys.stderr, "Nodes:", len(g.vs)
-    print >>sys.stderr, "Edges:", len(g.es)
+    logging.info("Nodes: %d" % len(g.vs))
+    logging.info("Edges: %d" % len(g.es))
 
-    save_graph(g, lang, type_, date_)
+    with Timr('Saving graph'):
+        save_graph(g, lang, type_, date_)
 
 if __name__ == "__main__":
     #import cProfile as profile
