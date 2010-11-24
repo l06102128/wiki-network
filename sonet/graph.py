@@ -218,7 +218,7 @@ class Graph(object):
         kwargs = {stype+'_gt': lb}
 
         nodes = self.g.vs(**kwargs)
-        for v in sorted(nodes, cmp=itemgetter(stype), reverse=True)[0:limit]:
+        for v in sorted(nodes, key=itemgetter(stype), reverse=True)[0:limit]:
             print v.index, v[stype], v[label]
             #TODO: add role
 
