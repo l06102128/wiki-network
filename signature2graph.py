@@ -95,7 +95,7 @@ def main():
 
     try:
         xml = files[0]
-    except KeyError:
+    except IndexError:
         p.error("Give me one file, please")
 
     en_user, en_user_talk = u"User", u"User talk"
