@@ -194,7 +194,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._welcome = True
             
     def get_network(self):
-        self.ecache.flush()
+        with Timr('Flushing'):
+            self.ecache.flush()
         return self.ecache.get_network(edge_label='timestamp')
 
     def end(self):
@@ -295,7 +296,7 @@ def main():
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
 
-    with Timr('EdgeCache.get_network()'):
+    with Timr('Getting network'):
         g = processor.get_network()
 
     logging.info("Nodes: %d" % len(g.vs))
