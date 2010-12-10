@@ -62,9 +62,14 @@ class EdgeCache:
         
         n_nodes = len(self.nodes)
         
+        ## destructively iterate over cached edges dict
         while True:
             try:
                 recipient, talk = self.temp_edges.popitem()
+                
+                # find node with username recipient in self nodes
+                # If not present add it; we give him the id rec_id
+                rec_id = self.nodes.setdefault(recipient, n_nodes)
 
                 for sender, msgs in talk.iteritems():
                     send_id = self.nodes.setdefault(sender, n_nodes)
@@ -80,8 +85,9 @@ class EdgeCache:
                 if not len(self.temp_edges):
                     logging.info('FLUSHED EDGES: %d' % counter)
                 else:
-                    logging.error('NOT ALL THE EDGES HAVE BEEN FLUSHED: %d - %d REMAINING' \ 
+                    logging.error('NOT ALL THE EDGES HAVE BEEN FLUSHED: %d - %d REMAINING'
                                   % (counter,len(self.temp_edges),))
+                break
     
         del self.temp_edges
 
