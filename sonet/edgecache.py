@@ -1,4 +1,5 @@
 import igraph as ig
+import logging
 
 class EdgeCache:
     """
@@ -56,16 +57,33 @@ class EdgeCache:
         the meanwhile you can't call flush()
         """
 
-        for recipient, talk in self.temp_edges.iteritems():
-            # find node with username recipient in self nodes
-            # If not present add it; we give him the id rec_id
-            rec_id = self.nodes.setdefault(recipient, len(self.nodes))
+        counter = 0
+        logging.info('TEMP EDGES: %d' % len(self.temp_edges))
+        
+        n_nodes = len(self.nodes)
+        
+        while True:
+            try:
+                recipient, talk = self.temp_edges.popitem()
 
-            for sender, msgs in talk.iteritems():
-                send_id = self.nodes.setdefault(sender, len(self.nodes))
-                self.edges.append((send_id, rec_id, msgs))
+                for sender, msgs in talk.iteritems():
+                    send_id = self.nodes.setdefault(sender, n_nodes)
+                    self.edges.append((send_id, rec_id, msgs))
+                
+                del recipient, talk
 
-        self.temp_edges.clear()
+                counter += 1
+                if not counter % 5000:
+                    logging.info(counter)
+                
+            except KeyError:
+                if not len(self.temp_edges):
+                    logging.info('FLUSHED EDGES: %d' % counter)
+                else:
+                    logging.error('NOT ALL THE EDGES HAVE BEEN FLUSHED: %d - %d REMAINING' \ 
+                                  % (counter,len(self.temp_edges),))
+    
+        del self.temp_edges
 
     def get_network(self, vertex_label='username', edge_label='weight'):
         """
