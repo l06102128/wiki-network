@@ -412,8 +412,11 @@ def count_renames(lang):
 
 Message = namedtuple('Message', 'time welcome')
 
-
-utp_archive_regex = re2_compile_with_fallback(r'(?:vecchi|archiv|old)', re.I)
+try:
+    utp_archive_regex = re2_compile_with_fallback(r'(?:vecchi|archiv|old)', re.I)
+except TypeError:
+    ## pyre2 does not support flags
+    utp_archive_regex = re2_compile_with_fallback(r'(?:vecchi|archiv|old)')
 
 def username_from_utp(title, namespaces=None):
     """
