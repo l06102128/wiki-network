@@ -22,6 +22,9 @@ class PageProcessor(object):
         tag_page = tag['page']
 
         ## FIND PROCESS METHODS
+        ## power of introspection: methods with names starting with "process_" (such as
+        ## "process_title") are made available and get automatically called when the
+        ## equivalent
         for member_name, type_ in inspect.getmembers(self):
             if not member_name.startswith('process_'): continue
             member = self.__getattribute__(member_name)
