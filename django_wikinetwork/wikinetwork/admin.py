@@ -15,7 +15,12 @@ class DictTimeField(Textarea):
             for k, v in sorted(value.iteritems()):
                 da = date(2000, 1, 1) + timedelta(k)
                 sk = '%s-%.2d-%.2d' % (da.year, da.month, da.day)
-                out.append("%s:\t%3d" % (sk, v))
+
+                if type(v) == 'int':
+                    out.append("%s:\t%3d" % (sk, v))
+                else:
+                    out.append("%s:\t%s" % (sk, str(v)))
+                    
             value = '</tr></td><tr><td>'.join(out)
 
         return mark_safe(u"<table><tr><td>%s</tr></td></table>" % (value,))
