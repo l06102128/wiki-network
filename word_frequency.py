@@ -159,7 +159,7 @@ def main():
     deflate, _lineno = lib.find_open_for_this_file(xml)
 
     if _lineno:
-        src = deflate(xml, 51)
+        src = deflate(xml, 51)   # Read first 51 lines to extract namespaces
     else:
         src = deflate(xml)
 

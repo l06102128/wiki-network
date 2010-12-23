@@ -132,7 +132,7 @@ def main():
     date_ = yyyymmdd_to_datetime(date_, 1)
 
     if _lineno:
-        src = deflate(xml, 51)
+        src = deflate(xml, 51)   # Read first 51 lines to extract namespaces
     else:
         src = deflate(xml)
 
