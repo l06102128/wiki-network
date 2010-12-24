@@ -45,17 +45,20 @@ def get_engine(dbname=None):
     if dbname is None:
         dbname = DATABASE_NAME
 
-    s_engine = '%(driver)s://%(username)s:%(password)s@%(host)s/%(dbname)s' % {
-        'driver': driver,
-        'host': DATABASE_HOST,
-        'dbname': dbname,
-        'username': DATABASE_USER,
-        'password': DATABASE_PASSWORD
-    }
+    # sqlite has no user/pass
+    if driver != 'sqlite':
+        s_engine = '%(driver)s://%(username)s:' + \
+                   '%(password)s@%(host)s/%(dbname)s' % {
+            'driver': driver,
+            'host': DATABASE_HOST,
+            'dbname': dbname,
+            'username': DATABASE_USER,
+            'password': DATABASE_PASSWORD
+        }
+    else:
+        s_engine = 'sqlite:////' + dbname;
 
-    return create_engine(
-        s_engine
-    )
+    return create_engine(s_engine)
 
 def get_events_table(engine=None, metadata=None):
     if engine is None:
