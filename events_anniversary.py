@@ -113,6 +113,14 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         ## Contributor is anonymous, thus increments anonymous' contribution
         self._counter[self._date][2] += 1
 
+    def process_redirect(self, elem):
+        self._skip = True
+        print self._title
+        if self._desired is True:
+            print type(self._title)
+            raise ValueError, "The page %s is a redirect. " % self._title + \
+                              "Pages in the input list must not be redirect"
+
 
 def main():
     import optparse
@@ -143,7 +151,7 @@ def main():
                                         if l and not l[0][0] == '#']
 
     if _lineno:
-        src = deflate(xml, 51)   # Read first 51 lines to extract namespaces
+        src = deflate(xml, 51)
     else:
         src = deflate(xml)
 

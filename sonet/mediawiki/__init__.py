@@ -460,3 +460,16 @@ def username_from_utp(title, namespaces=None):
             raise ValueError('Not an archive page')
         logging.debug('Keep %s', title.encode('utf-8'))
         return pagename[:pagename_idx]
+
+def only_inserted_text(seqm):
+    """
+    Unify operations between two compared strings
+    seqm is a difflib.SequenceMatcher instance whose a & b are strings
+    """
+    import difflib
+    output= []
+    for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
+        if opcode == 'insert':
+            output.append(seqm.b[b0:b1])
+    return ' '.join(output)
+
