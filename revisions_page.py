@@ -32,6 +32,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.queue = []
 
     def save(self):
+        if self._text == None: # difflib doesn't like NoneType
+            self._text = ""
         sm = difflib.SequenceMatcher(None, self._prev_text, self._text)
         self._prev_text = self._text
         page = {
@@ -55,6 +57,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.save()
 
     def process_page(self, elem):
+        self.delattr(("text"))
         self._skip = False
 
     def process_redirect(self, elem):
