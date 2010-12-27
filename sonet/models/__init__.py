@@ -47,7 +47,7 @@ def get_engine(dbname=None):
 
     # sqlite has no user/pass
     if driver != 'sqlite':
-        s_engine = '%(driver)s://%(username)s:' + \
+        s_engine = '%(driver)s://%(username)s:' \
                    '%(password)s@%(host)s/%(dbname)s' % {
             'driver': driver,
             'host': DATABASE_HOST,

@@ -121,6 +121,10 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
             raise ValueError, "The page %s is a redirect. " % self._title + \
                               "Pages in the input list must not be redirect"
 
+        if self._desired is True:
+            raise ValueError, "The page %s is a redirect. " % self._title + \
+                              "Pages in the desired list must not be redirects"
+
 
 def main():
     import optparse
