@@ -115,7 +115,6 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
 
     def process_redirect(self, elem):
         self._skip = True
-        print self._title
         if self._desired is True:
             print type(self._title)
             raise ValueError, "The page %s is a redirect. " % self._title + \
