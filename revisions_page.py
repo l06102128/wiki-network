@@ -58,9 +58,11 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self._skip = False
 
     def process_redirect(self, elem):
+        # This class only considers pages that are in the desired file,
+        # these pages must not be redirects
         self._skip = True
         raise ValueError, "The page %s is a redirect. " % self._title + \
-                          "Pages in the input list must not be redirect"
+                          "Pages in the desired list must not be redirects."
 
 
 def main():

@@ -117,7 +117,7 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         self._skip = True
         if self._desired is True:
             raise ValueError, "The page %s is a redirect. " % self._title + \
-                              "Pages in the input list must not be redirect"
+                              "Pages in the desired list must not be redirects."
 
 
 def main():
