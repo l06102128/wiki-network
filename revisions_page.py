@@ -107,7 +107,7 @@ def main():
     import optparse
     p = optparse.OptionParser(
         usage="usage: %prog [options] file_input desired_list file_output")
-    p.add_option('-t', '--type', action="store", dest="t", default="all",
+    p.add_option('-t', '--type', action="store", dest="type", default="all",
                  help="Type of page to analize (content|talk|all)")
     opts, files = p.parse_args()
     if len(files) != 3:
@@ -136,7 +136,7 @@ def main():
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
                                               output=output)
     processor.talkns = translation['Talk']
-    processor.desired_page_type = opts.t
+    processor.desired_page_type = opts.type
     processor.set_desired(desired_pages)
     processor.start(src)
     processor.flush()
