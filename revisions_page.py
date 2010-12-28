@@ -24,8 +24,8 @@ import difflib
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
     _skip = None
-    threshold = 0
     _prev_text = ""
+    desired_page_type = ""
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
@@ -60,6 +60,27 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         }
         self.queue.append(page)
 
+    def process_title(self, elem):
+        self.delattr(("_counter", "_type", "_title", "_skip", "_date", "text"))
+        a_title = elem.text.split(':')
+        if len(a_title) == 1:
+            if self.desired_page_type == "talk":
+                self._skip = True
+                return
+            self._type = 'normal'
+            self._title = a_title[0]
+        else:
+            if a_title[0] == self.talkns and \
+                    self.desired_page_type != "content":
+                self._type = 'talk'
+                self._title = a_title[1]
+            else:
+                self._skip = True
+                return
+        self._desired = self.is_desired(self._title)
+        if self._desired is not True:
+            self._skip = True
+
     def process_timestamp(self, elem):
         if self._skip is False:
             return
@@ -72,7 +93,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.save()
 
     def process_page(self, elem):
-        self.delattr(("text"))
         self._skip = False
 
     def process_redirect(self, elem):
@@ -87,6 +107,8 @@ def main():
     import optparse
     p = optparse.OptionParser(
         usage="usage: %prog [options] file_input desired_list file_output")
+    p.add_option('-t', '--type', action="store", dest="t", default="all",
+                 help="Type of page to analize (content|talk|all)")
     opts, files = p.parse_args()
     if len(files) != 3:
         p.error("Wrong parameters")
@@ -113,7 +135,8 @@ def main():
 
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
                                               output=output)
-    processor.talkns = translation["Talk"]
+    processor.talkns = translation['Talk']
+    processor.desired_page_type = opts.t
     processor.set_desired(desired_pages)
     processor.start(src)
     processor.flush()
