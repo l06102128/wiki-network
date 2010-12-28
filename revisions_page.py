@@ -106,7 +106,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 def main():
     import optparse
     p = optparse.OptionParser(
-        usage="usage: %prog [options] file_input desired_list file_output")
+        usage="usage: %prog [options] input_file desired_list output_file")
     p.add_option('-t', '--type', action="store", dest="type", default="all",
                  help="Type of page to analize (content|talk|all)")
     opts, files = p.parse_args()
