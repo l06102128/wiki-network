@@ -21,6 +21,7 @@ import csv
 import sys
 import logging
 from random import random
+from datetime import date
 
 from sonet import lib
 from sonet.timr import Timr
@@ -30,6 +31,10 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
     output = None
     desired_page_type = None
+    _counter_revisions = None
+    _editors = None
+    _min_text_length = None
+    _initial_revision = None
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
@@ -54,7 +59,11 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     def process_title(self, elem):
 
         #clean attributes
-        self.delattr(("_counter", "_type", "_title"))
+        self.delattr(("_counter", "_type", "_title", "_editors", "_initial_revision"))
+        
+        self._editors = []
+        self._counter_revisions = 0
+        self._min_text_length = 0
 
         a_title = elem.text.split(':')
 
@@ -81,9 +90,68 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
                 self._skip = True
 
 
-    def process_page(self, elem):
+    def process_text(self, elem):
+        if self._skip:
+            return
 
-        if self._skip is not True:
+        if self.min_text and \
+            len(elem.text) < self.min_text:
+            if self._desired:
+                logging.warning('Desired page %s skipped due to its text size: %d' %
+                         (self._title, len(elem.text)))
+            self._skip = True
+            return
+        else:
+            pass
+
+
+    def process_timestamp(self, elem):
+        if self._skip:
+            return
+
+        if self.s_date and not self._initial_revision:
+            
+            timestamp = elem.text
+            year = int(timestamp[:4])
+            month = int(timestamp[5:7])
+            day = int(timestamp[8:10])
+            revision_time = date(year, month, day)
+
+            if revision_time > self.s_date:
+                if self._desired:
+                    logging.warning('Desired page %s skipped due to its initial revision date: %s' %
+                         (self._title, revision_time.strftime('%Y-%m-%d')))
+                self._skip = True
+                return
+
+            self._initial_revision =revision_time
+            
+        else:
+            pass
+
+
+    def process_username(self, elem):
+        u = elem.text.encode('utf-8')
+        if u not in self._editors:
+            self._editors.append(u)
+
+
+    def process_ip(self, elem):
+        u = elem.text
+        if u not in self._editors:
+            self._editors.append(u)
+
+
+    def process_page(self, elem):
+        
+        if not self._skip and self.n_users and \
+           len(self._editors) < self.n_users:
+            if self._desired:
+                logging.warning('Desired page %s skipped due to low number of editors: %d' %
+                         (self._title, len(self._editors)))
+            self._skip = True
+
+        if not self._skip:
             self.queue.append(smart_str('%s%s' % (
                 'Talk:' if self._talk else '',self._title,))
             )
@@ -104,6 +172,15 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         #                  "Pages in the desired list must not be redirects."
 
 
+def args_checker(args, type_):
+    import re
+
+    if args.number_of_users or args.initial_revision:
+        assert re.search('.-(meta-history)', type_), "Wrong dump file, required: *-meta-history"
+
+    if args.min_text_length:
+        assert type_ == '-pages-meta-current', "Wrong dump file, required: pages-meta-current"
+
 def create_option_parser():
     import argparse
 
@@ -113,8 +190,14 @@ def create_option_parser():
     ## optional parameters
     p.add_argument('-t', '--type', default="all", metavar="TYPE",
                    help="Type of page to analize (content|talk|all)")
+    p.add_argument('-U', '--number-of-users', default=0, metavar="NUMBER_OF_USERS", type=int,
+                   help="pages with less than NUMBER_OF_USERS editors are skipped (default: %(default)s)")
+    p.add_argument('-s', '--initial_revision', type=lib.yyyymmdd_to_datetime, metavar="YYYYMMDD",
+                          help="Look for revisions starting from this date", default=None)
     p.add_argument('-R', '--ratio', default=1., type=float, metavar="RATIO",
                   help="percentage of pages to be analyzed")
+    p.add_argument('-T', '--min-text-length', default=0, metavar="TEXT_LENGTH", type=int,
+                   help="pages with text shorter than TEXT_LENGTH characters are skipped (default: %(default)s)")
 
     ## positional arguments
     p.add_argument('xml_fn', help="wikipedia dump to be parsed", metavar="DUMP_FILE")
@@ -137,8 +220,10 @@ def main():
         desired_pages = [l[0].decode('latin-1') for l in csv.reader(f)
                                         if l and not l[0][0] == '#']
 
-    lang, date_, _ = explode_dump_filename(args.xml_fn)
+    lang, date_, type_ = explode_dump_filename(args.xml_fn)
     deflate, _lineno = lib.find_open_for_this_file(args.xml_fn)
+
+    args_checker(args, type_)
 
     if _lineno:
         src = deflate(args.xml_fn, 51)
@@ -146,7 +231,7 @@ def main():
         src = deflate(args.xml_fn)
 
     translation = get_translations(src)
-    tag = get_tags(src, tags='page,title,redirect')
+    tag = get_tags(src, tags='page,title,redirect,text,username,ip,timestamp')
 
     src.close()
     src = deflate(args.xml_fn)
@@ -155,7 +240,10 @@ def main():
 
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
                                               output=output_fn,
-                                              threshold=args.ratio)
+                                              threshold=args.ratio,
+                                              min_text=args.min_text_length,
+                                              n_users=args.number_of_users,
+                                              s_revision=args.initial_revision)
     
     processor.talkns = translation['Talk']
     processor.desired_page_type = args.type
