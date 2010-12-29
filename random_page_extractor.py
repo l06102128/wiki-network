@@ -21,7 +21,7 @@ import csv
 import sys
 import logging
 from random import random
-from datetime import date
+from datetime import datetime
 
 from sonet import lib
 from sonet.timr import Timr
@@ -38,7 +38,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
-        self.output = open(kwargs['output'], 'w')
         self.queue = []
 
     def save(self):
@@ -49,7 +48,11 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if len(self.queue):
             #logging.info('Saving %d pages' % len(self.queue))
             for q in self.queue:
-                if q and q != '': print >>self.output, q
+                if q and q != '':
+                    if self.output:
+                        print >>self.output, q
+                    else:
+                        print q
             self.queue = []
         
     def end(self):
@@ -109,15 +112,15 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if self._skip:
             return
 
-        if self.s_date and not self._initial_revision:
+        if self.start_revision and not self._initial_revision:
             
             timestamp = elem.text
             year = int(timestamp[:4])
             month = int(timestamp[5:7])
             day = int(timestamp[8:10])
-            revision_time = date(year, month, day)
+            revision_time = datetime(year, month, day)
 
-            if revision_time > self.s_date:
+            if revision_time > self.start_revision:
                 if self._desired:
                     logging.warning('Desired page %s skipped due to its initial revision date: %s' %
                          (self._title, revision_time.strftime('%Y-%m-%d')))
@@ -198,6 +201,7 @@ def create_option_parser():
                   help="percentage of pages to be analyzed")
     p.add_argument('-T', '--min-text-length', default=0, metavar="TEXT_LENGTH", type=int,
                    help="pages with text shorter than TEXT_LENGTH characters are skipped (default: %(default)s)")
+    p.add_argument('-o', '--output', help="output file name", metavar="OUTPUT_FILE", default=None)
 
     ## positional arguments
     p.add_argument('xml_fn', help="wikipedia dump to be parsed", metavar="DUMP_FILE")
@@ -236,14 +240,14 @@ def main():
     src.close()
     src = deflate(args.xml_fn)
 
-    output_fn = "%swiki-%s-random_page_list.csv" % (lang, date_)
+    output = open(args.output, 'w') if args.output else None
 
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
-                                              output=output_fn,
+                                              output=output,
                                               threshold=args.ratio,
                                               min_text=args.min_text_length,
                                               n_users=args.number_of_users,
-                                              s_revision=args.initial_revision)
+                                              start_revision=args.initial_revision)
     
     processor.talkns = translation['Talk']
     processor.desired_page_type = args.type
