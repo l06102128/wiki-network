@@ -155,7 +155,7 @@ def is_near_anniversary(creation, revision, range_):
             anniversary = date(revision.year + 1, creation.month,
                                (creation.day - 1))
         delta = (revision - anniversary).days
-        return (abs(delta) <= range_)
+        return abs(delta) <= range_
     else:
         try:
             anniversary = date(revision.year - 1, creation.month,
@@ -164,7 +164,7 @@ def is_near_anniversary(creation, revision, range_):
             anniversary = date(revision.year - 1, creation.month,
                                (creation.day - 1))
         delta = (revision - anniversary).days
-        return (abs(delta) <= range_)
+        return abs(delta) <= range_
 
 def get_first_revision(start_date, data):
     """
@@ -351,7 +351,7 @@ class EventsProcessor(HistoryPageProcessor):
 
             ## to skip or not to skip? This is the question...
             if not self.__desired and self.threshold < 1.:
-                if threshold == 0. or random() > threshold:
+                if self.threshold == 0. or random() > self.threshold:
                     self.__skip = True
                 else:
                     self.__skip = False
@@ -364,7 +364,7 @@ class EventsProcessor(HistoryPageProcessor):
         
         self.flush()
 
-    def process_page(self):
+    def process_page(self, elem):
         """
         process a page counting all the revisions made and
         calculating some statistics as number of days since
@@ -462,8 +462,8 @@ class EventsProcessor(HistoryPageProcessor):
         This functions emptys the pages' queue and write it on the
         bzipped csv file
         '''
-        print 'PAGES:', self.count_pages, 'REVS:', self.count_revisions,
-        'DESIRED:', len(self.count_desired)
+        print 'PAGES:', self.count_pages, 'REVS:', self.count_revisions, \
+            'DESIRED:', len(self.count_desired)
         
         self.csv_writer.writerows(self.pages)
                    
