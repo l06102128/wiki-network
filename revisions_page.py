@@ -25,7 +25,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
     _skip = None
     _prev_text = ""
-    desired_page_type = ""
+    get_talks = True
+    get_articles = True
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
@@ -63,23 +64,21 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date", "text"))
         a_title = elem.text.split(':')
-        if len(a_title) == 1:
-            if self.desired_page_type == "talk":
-                self._skip = True
-                return
+
+        if len(a_title) == 1 and self.get_articles is True:
             self._type = 'normal'
             self._title = a_title[0]
+        elif len(a_title) == 2 and a_title[0] == self.talkns and \
+                self.get_talks is True:
+            self._type = 'talk'
+            self._title = a_title[1]
         else:
-            if a_title[0] == self.talkns and \
-                    self.desired_page_type != "content":
-                self._type = 'talk'
-                self._title = a_title[1]
-            else:
-                self._skip = True
-                return
-        self._desired = self.is_desired(self._title)
-        if self._desired is not True:
             self._skip = True
+
+        if self._skip is not True:
+            self._desired = self.is_desired(self._title)
+            if self._desired is not True:
+                self._skip = True
 
     def process_timestamp(self, elem):
         if self._skip is False:
@@ -136,12 +135,25 @@ def main():
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
                                               output=output)
     processor.talkns = translation['Talk']
-    processor.desired_page_type = opts.type
+    if opts.type == 'talk':
+        processor.get_articles = False
+    elif opts.type == 'content':
+        proessor.get_talks = False
     processor.set_desired(desired_pages)
     processor.start(src)
     processor.flush()
 
 
 if __name__ == "__main__":
+    """
+    import cherrypy
+    import dowser
+    cherrypy.tree.mount(dowser.Root())
+    cherrypy.config.update({
+        'environment': 'embedded',
+        'server.socket_port': 8080
+    })
+    cherrypy.engine.start()
+    """
     main()
 
