@@ -75,10 +75,10 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def process_page(self, elem):
         self.count += 1
-        if self.count % 1000 == 0:
+        if not self.count % 1000:
             logging.info(' ### Processed %d pages' % self.count)
         self.delattr(("text"))
-        if self._skip is True:
+        if self._skip:
             self._skip = False
             return
         with Timr('Flushing %s' % self._title):
@@ -94,7 +94,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def process_title(self, elem):
         HistoryPageProcessor.process_title(self,elem)
-        if self._skip != True:
+        if not self._skip:
             logging.info('Start processing desired page %s' % self._title)
 
 
