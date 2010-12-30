@@ -33,11 +33,9 @@ def main():
     for line in csv_reader:
         if opts.lines is not None and i >= opts.lines:
             break
-        if opts.page is not None:
-            if line[2] != opts.page:
-                continue
-        csv_writer.writerow(line)
-        i += 1
+        if opts.page is None or line[2] == opts.page:
+            csv_writer.writerow(line)
+            i += 1
 
     # hungry of memory
     """
