@@ -20,6 +20,8 @@ from sonet import lib
 from django.utils.encoding import smart_str
 import csv
 import difflib
+import sys, logging
+from sonet.timr import Timr
 
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
@@ -72,7 +74,15 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.save()
 
     def process_page(self, elem):
+        self.count += 1
+        if self.count % 1000 == 0:
+            logging.info(' ### Processed %d pages' % self.count)
         self.delattr(("text"))
+        if self._skip is True:
+            self._skip = False
+            return
+        with Timr('Flushing %s' % self._title):
+            self.flush()
         self._skip = False
 
     def process_redirect(self, elem):
@@ -82,14 +92,26 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         raise ValueError, "The page %s is a redirect. " % self._title + \
                           "Pages in the desired list must not be redirects."
 
+    def process_title(self, elem):
+        HistoryPageProcessor.process_title(self,elem)
+        if self._skip != True:
+            logging.info('Start processing desired page %s' % self._title)
+
 
 def main():
     import optparse
     p = optparse.OptionParser(
         usage="usage: %prog [options] file_input desired_list file_output")
+    p.add_option('-v', action="store_true", dest="verbose", default=False,
+                 help="Verbose output (like timings)")
     opts, files = p.parse_args()
     if len(files) != 3:
         p.error("Wrong parameters")
+    if opts.verbose:
+        logging.basicConfig(stream=sys.stderr,
+                            level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
 
     xml = files[0]
     desired_pages_fn = files[1]
@@ -115,7 +137,9 @@ def main():
                                               output=output)
     processor.talkns = translation["Talk"]
     processor.set_desired(desired_pages)
-    processor.start(src)
+    with Timr('Processing'):
+        processor.start(src) ## PROCESSING
+
     processor.flush()
 
 
