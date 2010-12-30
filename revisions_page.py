@@ -64,6 +64,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date", "text"))
+        self._skip = False
         a_title = elem.text.split(':')
 
         if len(a_title) == 1 and self.get_articles:
@@ -78,7 +79,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
         if not self._skip:
             self._desired = self.is_desired(self._title)
-            if self._desired:
+            if not self._desired:
                 self._skip = True
             else:
                 logging.info('Start processing desired page %s (%s)' % \
@@ -109,8 +110,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         # This class only considers pages that are in the desired file,
         # these pages must not be redirects
         self._skip = True
-        raise (ValueError, "The page %s is a redirect. " % self._title + \
-                          "Pages in the desired list must not be redirects.")
+        raise ValueError("The page %s is a redirect. " % self._title + \
+                         "Pages in the desired list must not be redirects.")
 
 
 def main():
