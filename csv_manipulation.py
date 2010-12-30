@@ -13,6 +13,8 @@ def main():
                  type="int", help="Number of lines to print")
     p.add_option('-p', '--page', action="store", dest="page",
                  help="Select a specific page")
+    p.add_option('-t', '--type', action="store", dest="type",
+                 help="Select a specific page type (normal|talk)")
     opts, files = p.parse_args()
     if len(files) != 1:
         p.error("Wrong parameters")
@@ -33,7 +35,8 @@ def main():
     for line in csv_reader:
         if opts.lines is not None and i >= opts.lines:
             break
-        if opts.page is None or line[2] == opts.page:
+        if (opts.page is None or line[2] == opts.page) and \
+                (opts.type is None or line[3] == opts.type):
             csv_writer.writerow(line)
             i += 1
 
