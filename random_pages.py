@@ -127,7 +127,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
                 self._skip = True
                 return
 
-            self._initial_revision =revision_time
+            self._initial_revision = revision_time
             
         else:
             pass
@@ -175,10 +175,12 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         #                  "Pages in the desired list must not be redirects."
 
 
-def args_checker(args, type_):
+def dumps_checker(args, type_):
     import re
 
-    if args.number_of_users or args.initial_revision:
+    #logging.info(args)
+
+    if args.editors_number or args.initial_revision:
         assert re.search('.-(meta-history)', type_), "Wrong dump file, required: *-meta-history"
 
     if args.min_text_length:
@@ -191,12 +193,12 @@ def create_option_parser():
                                 out of a Wikipedia dump')
 
     ## optional parameters
-    p.add_argument('-t', '--type', default="all", metavar="TYPE",
-                   help="Type of page to analize (content|talk|all)")
+    p.add_argument('-t', '--type', default="content", metavar="TYPE",
+                   help="Type of page to analize (content|talk|all) - default: %(default)s")
     p.add_argument('-e', '--editors-number', default=0, metavar="NUM_EDITORS", type=int,
                    help="pages with less than NUM_EDITORS editors are skipped (default: %(default)s)")
     p.add_argument('-s', '--initial_revision', type=lib.yyyymmdd_to_datetime, metavar="YYYYMMDD",
-                          help="Look for revisions starting from this date", default=None)
+                          help="Skip pages whose first revision occurred later than this date", default=None)
     p.add_argument('-r', '--ratio', default=1., type=float, metavar="RATIO",
                   help="percentage of pages to be analyzed")
     p.add_argument('-T', '--min-text-length', default=0, metavar="TEXT_LENGTH", type=int,
@@ -215,7 +217,6 @@ def main():
     logging.basicConfig(#filename="random_page_extractor.log",
                                 stream=sys.stderr,
                                 level=logging.DEBUG)
-    logging.info('---------------------START---------------------')
 
     op = create_option_parser()
     args = op.parse_args()
@@ -227,7 +228,9 @@ def main():
     lang, date_, type_ = explode_dump_filename(args.xml_fn)
     deflate, _lineno = lib.find_open_for_this_file(args.xml_fn)
 
-    args_checker(args, type_)
+    dumps_checker(args, type_)
+
+    logging.info('---------------------START---------------------')
 
     if _lineno:
         src = deflate(args.xml_fn, 51)
@@ -246,7 +249,7 @@ def main():
                                               output=output,
                                               threshold=args.ratio,
                                               min_text=args.min_text_length,
-                                              n_users=args.editors-number,
+                                              n_users=args.editors_number,
                                               start_revision=args.initial_revision)
     
     processor.talkns = translation['Talk']
