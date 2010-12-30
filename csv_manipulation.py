@@ -8,7 +8,7 @@ def main():
     p.add_option('-d', '--delimiter', action="store", dest="delimiter",
                  default="\t", help="CSV delimiter")
     p.add_option('-q', '--quotechar', action="store", dest="quotechar",
-                 default='"', help="CSVquotechar")
+                 default='"', help="CSV quotechar")
     p.add_option('-l', '--lines', action="store", dest="lines",
                  type="int", help="Number of lines to print")
     p.add_option('-p', '--page', action="store", dest="page",
@@ -20,8 +20,12 @@ def main():
     fn = files[0]
     csv_reader = csv.reader(open(fn, 'r'),
                             delimiter=opts.delimiter,
-                            quotechar=opts.quotechar)
-    csv_writer = csv.writer(stdout)
+                            quotechar=opts.quotechar,
+                            quoting=csv.QUOTE_ALL)
+    csv_writer = csv.writer(stdout,
+                            delimiter=opts.delimiter,
+                            quotechar=opts.quotechar,
+                            quoting=csv.QUOTE_ALL)
     csv.field_size_limit(1000000000)
 
     # really ugly but doesn't eat memory
