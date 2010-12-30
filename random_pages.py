@@ -88,10 +88,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
         self._desired = self.is_desired(self._title)
 
-        if self._desired is not True and self.threshold < 1.:
-           if random() > self.threshold:
-                self._skip = True
-
 
     def process_text(self, elem):
         if self._skip:
@@ -134,18 +130,30 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
 
     def process_username(self, elem):
-        u = elem.text.encode('utf-8')
+        if elem.text and elem.text != '':
+            u = elem.text.encode('utf-8')
+        else:
+            return
+
         if u not in self._editors:
             self._editors.append(u)
 
 
     def process_ip(self, elem):
-        u = elem.text
+        if elem.text and elem.text != '':
+            u = elem.text
+        else:
+            return
+        
         if u not in self._editors:
             self._editors.append(u)
 
 
     def process_page(self, elem):
+
+        if not self._skip and not self._desired and self.threshold < 1.:
+           if random() > self.threshold:
+                self._skip = True
         
         if not self._skip and self.n_users and \
            len(self._editors) < self.n_users:
