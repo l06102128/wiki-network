@@ -20,6 +20,8 @@ from sonet import lib
 from django.utils.encoding import smart_str
 import csv
 import difflib
+import sys, logging
+from sonet.timr import Timr
 
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
@@ -79,19 +81,29 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             self._desired = self.is_desired(self._title)
             if self._desired is not True:
                 self._skip = True
+            else:
+                logging.info('Start processing desired page %s (%s)' % \
+                             (self._title, self._type))
 
     def process_timestamp(self, elem):
-        if self._skip is False:
+        if self._skip is True:
             return
         self._date = elem.text
 
     def process_text(self, elem):
-        if self._skip is False:
+        if self._skip is True:
             return
         self._text = elem.text
         self.save()
 
     def process_page(self, elem):
+        self.count += 1
+        if not self.count % 1000:
+            logging.info(' ### Processed %d pages' % self.count)
+        self.delattr(("text"))
+        if self._skip is not True:
+            with Timr('Flushing %s' % self._title):
+                self.flush()
         self._skip = False
 
     def process_redirect(self, elem):
@@ -108,9 +120,16 @@ def main():
         usage="usage: %prog [options] input_file desired_list output_file")
     p.add_option('-t', '--type', action="store", dest="type", default="all",
                  help="Type of page to analize (content|talk|all)")
+    p.add_option('-v', action="store_true", dest="verbose", default=False,
+                 help="Verbose output (like timings)")
     opts, files = p.parse_args()
     if len(files) != 3:
         p.error("Wrong parameters")
+    if opts.verbose:
+        logging.basicConfig(stream=sys.stderr,
+                            level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
 
     xml = files[0]
     desired_pages_fn = files[1]
@@ -140,7 +159,8 @@ def main():
     elif opts.type == 'content':
         proessor.get_talks = False
     processor.set_desired(desired_pages)
-    processor.start(src)
+    with Timr('Processing'):
+        processor.start(src) ## PROCESSING
     processor.flush()
 
 
