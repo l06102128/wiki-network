@@ -193,11 +193,11 @@ def create_option_parser():
     ## optional parameters
     p.add_argument('-t', '--type', default="all", metavar="TYPE",
                    help="Type of page to analize (content|talk|all)")
-    p.add_argument('-U', '--number-of-users', default=0, metavar="NUMBER_OF_USERS", type=int,
-                   help="pages with less than NUMBER_OF_USERS editors are skipped (default: %(default)s)")
+    p.add_argument('-e', '--editors-number', default=0, metavar="NUM_EDITORS", type=int,
+                   help="pages with less than NUM_EDITORS editors are skipped (default: %(default)s)")
     p.add_argument('-s', '--initial_revision', type=lib.yyyymmdd_to_datetime, metavar="YYYYMMDD",
                           help="Look for revisions starting from this date", default=None)
-    p.add_argument('-R', '--ratio', default=1., type=float, metavar="RATIO",
+    p.add_argument('-r', '--ratio', default=1., type=float, metavar="RATIO",
                   help="percentage of pages to be analyzed")
     p.add_argument('-T', '--min-text-length', default=0, metavar="TEXT_LENGTH", type=int,
                    help="pages with text shorter than TEXT_LENGTH characters are skipped (default: %(default)s)")
@@ -246,7 +246,7 @@ def main():
                                               output=output,
                                               threshold=args.ratio,
                                               min_text=args.min_text_length,
-                                              n_users=args.number_of_users,
+                                              n_users=args.editors-number,
                                               start_revision=args.initial_revision)
     
     processor.talkns = translation['Talk']
