@@ -58,10 +58,8 @@ class EdgeCache:
         """
 
         counter = 0
-        logging.info('TEMP EDGES: %d' % len(self.temp_edges))
-        
-        n_nodes = len(self.nodes)
-        
+        logging.info('LENGTH OF TEMP EDGES: %d' % len(self.temp_edges))
+
         ## destructively iterate over cached edges dict
         while True:
             try:
@@ -69,16 +67,22 @@ class EdgeCache:
                 
                 # find node with username recipient in self nodes
                 # If not present add it; we give him the id rec_id
-                rec_id = self.nodes.setdefault(recipient, n_nodes)
+                rec_id = self.nodes.setdefault(recipient, len(self.nodes))
 
                 for sender, msgs in talk.iteritems():
-                    send_id = self.nodes.setdefault(sender, n_nodes)
+                    send_id = self.nodes.setdefault(sender, len(self.nodes))
                     self.edges.append((send_id, rec_id, msgs))
-                
+
                 del recipient, talk
 
                 counter += 1
                 if not counter % 5000:
+                    
+                    ## Shrinkage rate: addd/remove a foo element to the dict
+                    ## in order to force its resize
+                    self.temp_edges[None] = None
+                    del self.temp_edges[None]
+                    
                     logging.info(counter)
                 
             except KeyError:
