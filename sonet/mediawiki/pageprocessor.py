@@ -2,6 +2,7 @@ import xml.etree.cElementTree as etree
 #from lxml import etree
 from datetime import date
 from random import random
+import gc
 
 class PageProcessor(object):
     count = 0
@@ -14,6 +15,13 @@ class PageProcessor(object):
 
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
+
+    def _create_gen(self, context, dfunc, tag_page):
+        for _, elem in context:
+            if elem.tag in dfunc and (elem.tag == tag_page or not self._skip):
+                yield elem
+            else:
+                elem.clear()
 
     def start(self, f):
         import inspect
@@ -31,19 +39,17 @@ class PageProcessor(object):
             if not inspect.ismethod(member): continue
             dfunc[tag[member_name[8:]]] = member
 
-
         ## iterate over tags. skip if not in dfunc.
         ## self._skip is set by process_*() methods if all the tags have to be
         ## discarded up to the next page-tag (</page>)
         context = etree.iterparse(f)
-        for elem in (elem for _, elem in context if elem.tag in dfunc and
-                     (elem.tag == tag_page or not self._skip)):
+        context = iter(context)
+        gen = self._create_gen(context, dfunc, tag_page)
+        for elem in gen:
             dfunc[elem.tag](elem)
             elem.clear()
-            #while elem.getprevious() is not None:
-            #    del elem.getparent()[0]
         del context
-
+        del gen
         self.end()
 
     def end(self):
