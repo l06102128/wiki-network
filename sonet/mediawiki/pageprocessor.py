@@ -2,7 +2,6 @@ import xml.etree.cElementTree as etree
 #from lxml import etree
 from datetime import date
 from random import random
-import gc
 
 class PageProcessor(object):
     count = 0
