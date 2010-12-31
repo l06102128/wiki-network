@@ -28,6 +28,7 @@ from sonet.timr import Timr
 from django.utils.encoding import smart_str
 
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
+    counter_saved = None
     queue = None
     output = None
     desired_page_type = None
@@ -38,6 +39,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
+        self.counter_saved = 0
         self.queue = []
 
     def save(self):
@@ -56,7 +58,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             self.queue = []
         
     def end(self):
-        logging.info('PAGES: %d' % (self.counter_pages,))
+        logging.info('PAGES: %d - SAVED: %d' % (self.counter_pages,self.counter_saved))
         self.save()
 
     def process_title(self, elem):
@@ -166,12 +168,13 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             self.queue.append(smart_str('%s%s' % (
                 'Talk:' if self._talk else '',self._title,))
             )
+            self.counter_saved += 1
 
         self.counter_pages += 1
 
         if not self.counter_pages % 10000:
             self.save()
-            logging.info('PAGES: %d' % (self.counter_pages,))
+            logging.info('PAGES: %d - SAVED: %d' % (self.counter_pages,self.counter_saved))
 
         self._skip = False
 
