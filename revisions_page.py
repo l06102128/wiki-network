@@ -165,14 +165,4 @@ def main():
 
 
 if __name__ == "__main__":
-    """
-    import cherrypy
-    import dowser
-    cherrypy.tree.mount(dowser.Root())
-    cherrypy.config.update({
-        'environment': 'embedded',
-        'server.socket_port': 8080
-    })
-    cherrypy.engine.start()
-    """
     main()
