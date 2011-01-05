@@ -53,7 +53,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     def save(self):
         if self._text == None: # difflib doesn't like NoneType
             self._text = ""
-        sm = difflib.SequenceMatcher(None, self._prev_text, self._text)
         page = {'title': smart_str(self._title),
                 'lang': self.lang,
                 'timestamp': self._date,
