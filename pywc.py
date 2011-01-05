@@ -125,8 +125,8 @@ class PyWC:
         for k in self.categories:
             self._results[k] = 0
         self._total = 0
-
-        for word in re.findall("[\w']+", col):
+        rwords = re.compile("[\w']+")
+        for word in rwords.findall(col):
         #with Timr("Parsing word %s" % word):
             if not word.isdigit():  # Skip numbers, count words only
                 self.parse_word(word)
