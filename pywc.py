@@ -2,7 +2,7 @@
 
 ##########################################################################
 #                                                                        #
-# Copyleft Federico "fox" Scrinzi - 2011                                 #
+# Copyleft Federico "fox" Scrinzi (fox91 at anche dot no)                #
 #                                                                        #
 # pyWC is free software; you can redistribute it and/or modify           #
 # it under the terms of the GNU General Public License as published by   #
