@@ -25,7 +25,8 @@ from socket import inet_ntoa, inet_aton, error
 from urllib import urlopen
 from collections import namedtuple, defaultdict
 import json
-
+import difflib
+import diff_match_patch as dmp_module
 from pageprocessor import PageProcessor, HistoryPageProcessor
 
 
@@ -461,9 +462,9 @@ def username_from_utp(title, namespaces=None):
         logging.debug('Keep %s', title.encode('utf-8'))
         return pagename[:pagename_idx]
 
-def diff_text(opcodes,prev_text,text):
+def diff_text(opcodes, prev_text, text):
     """
-    opcodes is an array that can contain: 'insert', 'delete', 'equal', 
+    opcodes is an array that can contain: 'insert', 'delete', 'equal',
     'replace', 'replaced'.
     They are the standards for get_opcodes() of difflib.SequenceMatcher
     with the addition of 'replaced'.
@@ -487,7 +488,6 @@ def diff_text(opcodes,prev_text,text):
     >>> diff_text(['delete','replaced'],s1,s2)
     'Py on a lot'
     """
-    import difflib
     seqm = difflib.SequenceMatcher(None, prev_text, text)
     output= []
     for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
@@ -502,6 +502,21 @@ def diff_text(opcodes,prev_text,text):
             elif opcode == 'delete':
                 output.append(seqm.a[a0:a1])
     return ' '.join(output)
+
+def _diff_text(opcode, prev_text, text):
+    dmp = dmp_module.diff_match_patch()
+    dmp.Diff_Timeout = 0.1
+    d = dmp.diff_main(prev_text, text)
+    dmp.diff_cleanupSemantic(d)
+    res = []
+    if opcode == "insert":
+        res = [x[1] for x in d if x[0]==1]
+    elif opcode == "delete":
+        res = [x[1] for x in d if x[0]==-1]
+    elif opcode == "equal":
+        res = [x[1] for x in d if x[0]==0]
+    return ' '.join(res)
+
 
 if __name__ == "__main__":
     import doctest
