@@ -461,15 +461,49 @@ def username_from_utp(title, namespaces=None):
         logging.debug('Keep %s', title.encode('utf-8'))
         return pagename[:pagename_idx]
 
-def only_inserted_text(seqm):
+def diff_text(opcodes,prev_text,text):
     """
-    Unify operations between two compared strings
-    seqm is a difflib.SequenceMatcher instance whose a & b are strings
+    opcodes is an array that can contain: 'insert', 'delete', 'equal', 
+    'replace', 'replaced'.
+    They are the standards for get_opcodes() of difflib.SequenceMatcher
+    with the addition of 'replaced'.
+    If 'a' replaced 'b', 'replace' gives 'b' while 'replaced' gives 'a'.
+    >>> s1 = 'I like Python difflib a lot'
+    >>> s2 = 'I sometimes like this difflib very much'
+    >>> diff_text(['insert'],s1,s2)
+    ' sometimes'
+    >>> diff_text(['equal'],s1,s2)
+    'I  like  th  difflib   '
+    >>> diff_text(['delete'],s1,s2)
+    'Py'
+    >>> diff_text(['replace'],s1,s2)
+    'is very much'
+    >>> diff_text(['replaced'],s1,s2)
+    'on a lot'
+    >>> diff_text(['insert','replace'],s1,s2)
+    ' sometimes is very much'
+    >>> diff_text(['insert','replace','equal'],s1,s2)
+    'I  sometimes  like  th is  difflib  very   much'
+    >>> diff_text(['delete','replaced'],s1,s2)
+    'Py on a lot'
     """
     import difflib
+    seqm = difflib.SequenceMatcher(None, prev_text, text)
     output= []
     for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
-        if opcode == 'insert':
-            output.append(seqm.b[b0:b1])
+        if opcode == 'replace':
+            if 'replace' in opcodes:
+                output.append(seqm.b[b0:b1])
+            if 'replaced' in opcodes:
+                output.append(seqm.a[a0:a1])
+        elif opcode in opcodes:
+            if opcode == 'insert' or opcode == 'equal':
+                output.append(seqm.b[b0:b1])
+            elif opcode == 'delete':
+                output.append(seqm.a[a0:a1])
     return ' '.join(output)
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 

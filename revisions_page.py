@@ -15,7 +15,7 @@
 
 from sonet.mediawiki import HistoryPageProcessor, \
                             get_translations, get_tags, \
-                            explode_dump_filename, only_inserted_text
+                            explode_dump_filename, diff_text
 from sonet import lib
 from django.utils.encoding import smart_str
 import csv
@@ -54,13 +54,14 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if self._text == None: # difflib doesn't like NoneType
             self._text = ""
         sm = difflib.SequenceMatcher(None, self._prev_text, self._text)
-        self._prev_text = self._text
         page = {'title': smart_str(self._title),
                 'lang': self.lang,
                 'timestamp': self._date,
-                'text': smart_str(only_inserted_text(sm)),
+                'text': smart_str(diff_text(['insert'], self._prev_text, \
+                                  self._text)),
                 'type': self._type}
         self.queue.append(page)
+        self._prev_text = self._text
 
     def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date", "text"))
