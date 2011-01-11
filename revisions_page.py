@@ -51,7 +51,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.queue = []
 
     def save(self):
-        if self._text == None: # difflib doesn't like NoneType
+        if self._text is None: # difflib doesn't like NoneType
             self._text = ""
         page = {'title': smart_str(self._title),
                 'lang': self.lang,
