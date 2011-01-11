@@ -384,7 +384,7 @@ def normalize_pagename(s):
         return (s[0].upper() + s[1:])
     except IndexError:
         raise AttributeError
-    
+
 
 def count_renames(lang):
     url = base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list='+\
@@ -503,19 +503,26 @@ def diff_text(opcodes, prev_text, text):
                 output.append(seqm.a[a0:a1])
     return ' '.join(output)
 
-def _diff_text(opcode, prev_text, text):
+def _diff_text(prev_text, text):
+    """
+    >>> s1 = 'I like Python difflib a lot'
+    >>> s2 = 'I sometimes like this difflib very much'
+    >>> _diff_text(s1, s2)[0]
+    'sometimes like this difflib very much'
+    >>> _diff_text(s1, s2)[2]
+    'I '
+    >>> _diff_text(s1, s2)[1]
+    'like Python difflib a lot'
+    """
     dmp = dmp_module.diff_match_patch()
-    dmp.Diff_Timeout = 0.1
+    #dmp.Diff_Timeout = 0.1
     d = dmp.diff_main(prev_text, text)
     dmp.diff_cleanupSemantic(d)
     res = []
-    if opcode == "insert":
-        res = [x[1] for x in d if x[0]==1]
-    elif opcode == "delete":
-        res = [x[1] for x in d if x[0]==-1]
-    elif opcode == "equal":
-        res = [x[1] for x in d if x[0]==0]
-    return ' '.join(res)
+    insert = [x[1] for x in d if x[0]==1]
+    delete = [x[1] for x in d if x[0]==-1]
+    equal = [x[1] for x in d if x[0]==0]
+    return " ".join(insert), " ".join(delete), " ".join(equal)
 
 
 if __name__ == "__main__":
