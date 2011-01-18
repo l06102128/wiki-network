@@ -57,14 +57,20 @@ class PyWC:  # TODO write docstring!
     clean_html_regex = ((re.compile(r"<\!--.+?-->", re.DOTALL), ""),
                         (re.compile(r"<.+?>"), ""))
 
+    cond_exp_regex = (re.compile(r"<([\w']+)>(\w+)(\/(\w+)?)?"),
+                      re.compile(r"\(([\w\s]+)\)(\w+)(\/(\w+)?)?"))
+
     # Local proprieties (of every column of the source file)
-    _id = None        # Line ID
-    _results = None   # Dictionary where keys are cat ids and
-                      # values are counters
-    _total = None     # List of numbers of total words per column
-    _text = None      # Current text to analize
-    _counter = 0      # Generic counter of how many pieces of
-                      # text have been analized
+    _id = None         # Line ID
+    _results = None    # Dictionary where keys are cat ids and
+                       # values are counters
+    _total = None      # List of numbers of total words per column
+    _text = None       # Current text to analize
+    _prev_word = None  # Last word that has been analized
+    _prev_cat = None   # Categories of the last word that has been analized
+                       # (useful for conditional exps)
+    _counter = 0       # Generic counter of how many pieces of
+                       # text have been analized
 
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
@@ -85,7 +91,8 @@ class PyWC:  # TODO write docstring!
         as keys and thier categories as values)
         """
         for line in content[2].split("\n")[1:-1]:
-            if not line.startswith("//"):  # Comments start with //
+            # Comments start with //
+            if not line.startswith("//"):
                 line = line.split("\t")
                 # If not using a dictionary made of regexps
                 # it fixes the keyword for regexping
@@ -157,19 +164,44 @@ class PyWC:  # TODO write docstring!
         (self.keywords). For every regex that matches, it
         increments every category they belong to in self._result
         """
+        cat = []
         for regex in self.keywords:
             if regex.search(word):
                 for i in self.keywords[regex]:
-                    try:
-                        self._results[i] += 1
-                    # If dictionary contains trailing tabs,
-                    # '' keys are returned. It skips them.
-                    except KeyError:
-                        pass
+                    done = False
+                    res = self.cond_exp_regex[0].match(i)
+                    if res:
+                        done = True
+                        if self._prev_word == res.group(1):
+                            cat.append(res.group(2))
+                        elif res.group(4):
+                            cat.append(res.group(4))
+                    if not done:
+                        res = self.cond_exp_regex[1].match(i)
+                        if res:
+                            done = True
+                            if True in [c in self._prev_cat \
+                                        for c in res.group(1).split(" ")]:
+                               cat.append(res.group(2))
+                            elif res.group(4):
+                                cat.append(res.group(4))
+                    if not done:
+                        # If dictionary contains trailing tabs,
+                        # '' keys are saved. It skips them.
+                        if i:
+                            cat.append(i)
+
+        for c in cat:
+            try:
+                self._results[c] += 1
+            except KeyError:
+                logging.warn("Invalid category id %s" % c)
         self._total += 1
+        self._prev_word = word
+        self._prev_cat = cat
 
     def clean_wiki_syntax(self):
-        # TODO FILTER WIKI SYNTX
+        # TODO FILTER WIKI SYNTAX
         for regex, replace in self.clean_wiki_regex:
             self._text = regex.sub(replace, self._text)
 
@@ -183,7 +215,8 @@ class PyWC:  # TODO write docstring!
         Reads a single cell of the csv file. It splits it
         into words and gives them to self.parse_word
         """
-        self.delattrs(("_results", "_total", "_text"))
+        self.delattrs(("_results", "_total", "_text",
+                       "_prev_word", "_prev cat"))
         self._text = col
         logging.info("--------PRIMA-----------")
         logging.info(self._text)
@@ -218,7 +251,7 @@ class PyWC:  # TODO write docstring!
                 if i != self.id_col and not i in self.ignorecols:
                     self.parse_col(col)
             else:
-                logging.info("Warning: Line %d:%d skipped " \
+                logging.warn(" Line %d:%d skipped " \
                              "because longer than %d chars" % \
                              (self._counter, i, self.max_char_limit))
 
@@ -256,7 +289,7 @@ def main():
     p.add_option('-I', '--id', action="store", dest="id_col", type="int",
                  help="Id column number (starting from 0)", default=0)
     p.add_option('-r', action="store_true", dest="regex", default=False,
-                 help="Use a dictionary composed by regex")
+                 help="Use a dictionary composed by regex (default=false)")
     p.add_option('-f', "--flush", action="store", dest="flush", type="int",
                  default=100,
                  help="Flushing to output every N pieces of text")
