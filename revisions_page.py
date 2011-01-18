@@ -56,8 +56,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         page = {'title': smart_str(self._title),
                 'lang': self.lang,
                 'timestamp': self._date,
-                'text': smart_str(_diff_text('insert', self._prev_text, \
-                                  self._text)),
+                'text': smart_str(_diff_text(self._prev_text, self._text)[0]),
                 'type': self._type}
         self.queue.append(page)
         self._prev_text = self._text
