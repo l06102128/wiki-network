@@ -28,20 +28,20 @@ from sonet.timr import Timr
 
 class PyWC:  # TODO write docstring!
     # Global proprieties (of the whole source file)
-    categories = None       # Dictionary's categories
-    keywords = None         # Dictionary's keywords/regex
-    delimiter = "\t"        # CSV delimiter
-    quotechar = '"'         # CSV quotechar
-    csv_out = sys.stdout    # CSV output
-    queue = []              # Flushing queue
-    max_char_limit = None   # Max chars per line
-    ignorecols = []         # List of columns of the src file to ignore
-    csv_writer = None       # Csv writer handler
-    id_col = 0              # Number of the id column
-    dic_regex = False       # Use dictionary made of regex
-    flush_n = 0             # Number of pieces of text to store
-    clean_wiki = True       # Clean wiki syntax
-    clean_html = True       # Clean HTML
+    categories = None        # Dictionary's categories
+    keywords = None          # Dictionary's keywords/regex
+    delimiter = "\t"         # CSV delimiter
+    quotechar = '"'          # CSV quotechar
+    csv_out = sys.stdout     # CSV output
+    queue = []               # Flushing queue
+    max_char_limit = 100000  # Max chars per line
+    ignorecols = []          # List of columns of the src file to ignore
+    csv_writer = None        # Csv writer handler
+    id_col = 0               # Number of the id column
+    dic_regex = False        # Use dictionary made of regex
+    flush_n = 100            # Number of pieces of text to store
+    clean_wiki = True        # Clean wiki syntax
+    clean_html = True        # Clean HTML
 
     # TODO TODO TODO TODO TODO
     clean_wiki_regex = (
@@ -66,7 +66,7 @@ class PyWC:  # TODO write docstring!
                        # values are counters
     _total = None      # List of numbers of total words per column
     _text = None       # Current text to analize
-    _prev_word = None  # Last word that has been analized
+    _next_word = None  # Next word that has to be analized
     _prev_cat = None   # Categories of the last word that has been analized
                        # (useful for conditional exps)
     _counter = 0       # Generic counter of how many pieces of
@@ -168,28 +168,27 @@ class PyWC:  # TODO write docstring!
         for regex in self.keywords:
             if regex.search(word):
                 for i in self.keywords[regex]:
-                    done = False
                     res = self.cond_exp_regex[0].match(i)
                     if res:
-                        done = True
-                        if self._prev_word == res.group(1):
+                        if self._next_word == res.group(1):
                             cat.append(res.group(2))
                         elif res.group(4):
                             cat.append(res.group(4))
-                    if not done:
-                        res = self.cond_exp_regex[1].match(i)
-                        if res:
-                            done = True
-                            if True in [c in self._prev_cat \
-                                        for c in res.group(1).split(" ")]:
-                               cat.append(res.group(2))
-                            elif res.group(4):
-                                cat.append(res.group(4))
-                    if not done:
-                        # If dictionary contains trailing tabs,
-                        # '' keys are saved. It skips them.
-                        if i:
-                            cat.append(i)
+                        continue
+
+                    res = self.cond_exp_regex[1].match(i)
+                    if res:
+                        if True in [c in self._prev_cat \
+                                    for c in res.group(1).split(" ")]:
+                            cat.append(res.group(2))
+                        elif res.group(4):
+                            cat.append(res.group(4))
+                        continue
+
+                    # If dictionary contains trailing tabs,
+                    # '' keys are saved. It skips them.
+                    if i:
+                        cat.append(i)
 
         for c in cat:
             try:
@@ -197,7 +196,6 @@ class PyWC:  # TODO write docstring!
             except KeyError:
                 logging.warn("Invalid category id %s" % c)
         self._total += 1
-        self._prev_word = word
         self._prev_cat = cat
 
     def clean_wiki_syntax(self):
@@ -233,9 +231,14 @@ class PyWC:  # TODO write docstring!
             self._results[k] = 0
         self._total = 0
         rwords = re.compile("[\w']+")
-        for word in rwords.findall(col):
-            if not word.isdigit():  # Skips numbers
-                self.parse_word(word)
+        # create a list of words (_no_ numbers)
+        words = [word for word in rwords.findall(col) if not word.isdigit()]
+        for i, word in enumerate(words):
+            try:
+                self._next_word = words[i+1]
+            except IndexError:
+                self._next_word = ""
+            self.parse_word(word)
         self.save()
 
     def parse_line(self, line):
@@ -313,7 +316,7 @@ def main():
     t.dic_regex = opts.regex
     t.flush_n = opts.flush
     if opts.output is not None:
-        t.csv_out = open(opts.output, 'r')
+        t.csv_out = open(opts.output, 'w')
 
     t.set_dic(files[0])
     src = open(files[1], 'r')
