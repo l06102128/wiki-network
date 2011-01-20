@@ -43,11 +43,16 @@ class PyWC:  # TODO write docstring!
     clean_wiki = True        # Clean wiki syntax
     clean_html = True        # Clean HTML
 
+    clean_regex = (
+        (re.compile(r"\s(\w\.)+"), ""),
+        (re.compile(r"\:\w{1,3}"), "")
+    )
+
     # TODO TODO TODO TODO TODO
     clean_wiki_regex = (
         (re.compile(r"\[{1,2}([^\:\|]+?)\]{1,2}", re.DOTALL), r"\1"),
         (re.compile(r"\[{1,2}.+?[\||\:]([^\|^\:]+?)\]{1,2}", re.DOTALL), r"\1"),
-        (re.compile(r"(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})+"), ""),
+        (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+"), ""),
         (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
         (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
         #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""),
@@ -209,6 +214,10 @@ class PyWC:  # TODO write docstring!
         for regex, replace in self.clean_html_regex:
             self._text = regex.sub(replace, self._text)
 
+    def clean_text(self):
+        for regex, replace in self.clean_regex:
+            self._text = regex.sub(replace, self._text)
+
     def parse_col(self, col):
         """
         Reads a single cell of the csv file. It splits it
@@ -220,6 +229,7 @@ class PyWC:  # TODO write docstring!
         logging.info("--------PRIMA-----------")
         logging.info(self._text)
         logging.info("-------------------")
+        self.clean_text()
         if self.clean_wiki:
             self.clean_wiki_syntax()
         if self.clean_html:
