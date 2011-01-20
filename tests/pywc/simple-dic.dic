@@ -3,9 +3,10 @@
 2	ne
 3	super
 4	other
+
 %
 good	1
-// example: don't like is negative, like is positive and really like is super :D 
+// example: don't like is negative, like is positive and really like is super :D
 like	(2)2/1	(3 1)3
 great	1
 bad*	2
@@ -15,3 +16,4 @@ definitely	1
 really	3
 // kind of is different from kind
 kind	<of>4/1
+
