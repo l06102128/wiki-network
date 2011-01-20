@@ -45,12 +45,13 @@ class PyWC:  # TODO write docstring!
 
     # TODO TODO TODO TODO TODO
     clean_wiki_regex = (
-        (re.compile(r"\[{1,2}([^:]+?)\]{1,2}", re.DOTALL), r"\1"),
+        (re.compile(r"\[{1,2}([^\:\|]+?)\]{1,2}", re.DOTALL), r"\1"),
+        (re.compile(r"\[{1,2}.+?[\||\:]([^\|^\:]+?)\]{1,2}", re.DOTALL), r"\1"),
         (re.compile(r"(?:https?://)?(?:[\w]+\.)(?:\.?[\w]{2,})+"), ""),
         (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
         (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
-        (re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""),
-        (re.compile(r"\|.+?(\s+?)?=(\s+?)?.+?"), "")
+        #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""),
+        (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), "")
     )
 
     # Stripping HTML tags and comments
@@ -92,7 +93,7 @@ class PyWC:  # TODO write docstring!
         """
         for line in content[2].split("\n")[1:-1]:
             # Comments start with //
-            if not line.startswith("//"):
+            if line and not line.startswith("//"):
                 line = line.split("\t")
                 # If not using a dictionary made of regexps
                 # it fixes the keyword for regexping
@@ -127,7 +128,7 @@ class PyWC:  # TODO write docstring!
         # and category names are the values.
         # Splits content at first by new line, then by tab
         self.categories = dict((line.split("\t") \
-                for line in content[1].split("\n")[1:-1]))
+                for line in content[1].split("\n")[1:-1] if line))
 
         # Creates a dictionary where the compiled regex is the key
         # and category ids are the values
@@ -266,7 +267,12 @@ class PyWC:  # TODO write docstring!
         It writes the output csv header and reads every line, passing
         it to self.parse_line
         """
-        self._keys = ["id"] + self.categories.values() + ["total", "text"]
+
+        # Creates a list of category names sorted by their ID.
+        # Useful because Python dictionaries are not sorted objects!
+        cat_names = [x[1] for x in sorted(self.categories.items())]
+
+        self._keys = ["id"] + cat_names + ["total", "text"]
         self.csv_writer = csv.DictWriter(self.csv_out,
                                          delimiter=self.delimiter,
                                          fieldnames=self._keys,
