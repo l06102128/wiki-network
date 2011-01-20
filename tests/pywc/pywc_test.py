@@ -1,6 +1,6 @@
 import unittest
 from pywc import PyWC
-
+import re
 class TestPyWC(unittest.TestCase):
 
     def setUp(self):
@@ -10,6 +10,18 @@ class TestPyWC(unittest.TestCase):
     def testReadDic(self):
         self.assertEquals(len(self.pywc.categories), 4)
         self.assertEquals(len(self.pywc.keywords), 9)
+
+    def testClean(self):
+        t = ("born in the U.S.A.! Yeah. :D",
+             "I feel sick today :S",
+             "My favourite TV series: The Big Bang Theory")
+        e = ("born in the! Yeah. ",
+             "I feel sick today ",
+             "My favourite TV series: The Big Bang Theory")
+        for i, s in enumerate(t):
+            self.pywc._text = s
+            self.pywc.clean_text()
+            self.assertEquals(self.pywc._text, e[i])
 
     def testCleanHTML(self):
         t = ("<div><b>42</b> is the <a href='#'>answer</a></div>",
@@ -31,7 +43,8 @@ class TestPyWC(unittest.TestCase):
              "| name =goofy, |city =New York",
              "[File:Case di Volano.jpg|thumb|250px|Volano vista da un dosso]",
              "vicino a [[Calliano (Trentino-Alto Adige)|Calliano]] c'e' un",
-             "[[nap:Volano (TN)]]")
+             "[[nap:test:Volano (TN)]]",
+             "andare in S.Marco")
         e = ("Less taxes for everyone! ",
              "look here  lol lol :D ",
              "drink a relaxing Jack Daniel's",
@@ -39,11 +52,11 @@ class TestPyWC(unittest.TestCase):
              "",
              "Volano vista da un dosso",
              "vicino a Calliano c'e' un",
-             "Volano (TN)")
+             "Volano (TN)",
+             "andare in S.Marco")
         for i, s in enumerate(t):
             self.pywc._text = s
             self.pywc.clean_wiki_syntax()
-            print self.pywc._text
             self.assertEquals(self.pywc._text, e[i])
 
     def testOutput(self):
