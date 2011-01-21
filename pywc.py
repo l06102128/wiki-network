@@ -55,9 +55,8 @@ class PyWC:  # TODO write docstring!
         (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+"), ""),
         (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
         (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
-        #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""),
-        (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), "")
-    )
+        #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""))
+        (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), ""))
 
     # Stripping HTML tags and comments
     clean_html_regex = ((re.compile(r"<\!--.+?-->", re.DOTALL), ""),

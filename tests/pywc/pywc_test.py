@@ -12,12 +12,14 @@ class TestPyWC(unittest.TestCase):
         self.assertEquals(len(self.pywc.keywords), 9)
 
     def testClean(self):
-        t = ("born in the U.S.A.! Yeah. :D",
+        t = (";D :E born in the U.S.A.! Yeah. A. :-D",
              "I feel sick today :S",
-             "My favourite TV series: The Big Bang Theory")
+             ":My favourite TV series: The Big Bang Theory",
+             "F.B.K.")
         e = ("born in the! Yeah. ",
              "I feel sick today ",
-             "My favourite TV series: The Big Bang Theory")
+             ":My favourite TV series: The Big Bang Theory",
+             "")
         for i, s in enumerate(t):
             self.pywc._text = s
             self.pywc.clean_text()
