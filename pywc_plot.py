@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import matplotlib
-matplotlib.use("Agg")
+#matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.dates as md
+from datetime import datetime as dt
 
 import csv
 import numpy as np
@@ -40,16 +42,18 @@ def main():
     # content contains all the csv file
     content = [row for i, row in enumerate(csv_reader)]
 
-    # Creates a matrix (list) with percentages of the occurrencies of every
-    # category. Don't count id, total, text, ignore columns. If onlycols is set
-    # consider only them.
-    mat = []
     header = [name for j, name in enumerate(content[0])
               if j != opts.id_col and \
                  (not ignorecols or not j in ignorecols) and \
                  (not onlycols or j in onlycols) and
                  j != len(content[0]) - 1 and  # don't count last two columns
                  j != len(content[0]) - 2]     # (total and text)
+
+    # Creates a matrix (list) with percentages of the occurrencies of every
+    # category. Don't count id, total, text, ignore columns. If onlycols is set
+    # consider only them.
+    mat = []
+    timestamps = []
 
     for line in content[1:]:
         try:
@@ -60,17 +64,28 @@ def main():
                            (not onlycols or i in onlycols) and
                            i != len(line) - 1 and  # don't count last two cols
                            i != len(line) - 2])    # (total and text)
+            timestamps.append(dt.strptime(line[opts.id_col],
+                              "%Y-%m-%dT%H:%M:%SZ"))
         except ZeroDivisionError:
             pass
 
+    timestamps = matplotlib.dates.date2num(timestamps)
     mat = np.array(mat, dtype=np.float).transpose()
+
+    plt.subplots_adjust(bottom=0.2)
+    plt.xticks(rotation=25)
+    ax=plt.gca()
+    xfmt = md.DateFormatter('%Y-%m-%d')
+    ax.xaxis.set_major_formatter(xfmt)
+
     plt.ylabel("%")
-    plt.xlabel("Revisions")
+    plt.xlabel("Revisions Timestamp")
 
     for series in mat:
-        plt.plot(series)
+        plt.plot(timestamps, series, "o-")
     plt.legend(header)
     plt.savefig(files[1])
+    plt.show()
 
 if __name__ == "__main__":
     main()
