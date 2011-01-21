@@ -16,6 +16,7 @@
 ########################################################################
 
 import csv
+csv.field_size_limit(1000000)
 import sys
 try:
     import re2 as re
@@ -60,7 +61,8 @@ class PyWC:  # TODO write docstring!
 
     # Stripping HTML tags and comments
     clean_html_regex = ((re.compile(r"<\!--.+?-->", re.DOTALL), ""),
-                        (re.compile(r"<.+?>"), ""))
+                        (re.compile(r"<.+?>"), ""),
+                        (re.compile(r"\&\w+;"), ""))
 
     cond_exp_regex = (re.compile(r"<([\w']+)>(\w+)(\/(\w+)?)?"),
                       re.compile(r"\(([\w\s]+)\)(\w+)(\/(\w+)?)?"))

@@ -52,12 +52,16 @@ def main():
                  j != len(content[0]) - 2]     # (total and text)
 
     for line in content[1:]:
-        mat.append([float(e)/float(line[-2])*100 for i, e in enumerate(line) \
-                    if i != opts.id_col and \
-                       (not ignorecols or not i in ignorecols) and \
-                       (not onlycols or i in onlycols) and
-                       i != len(line) - 1 and  # don't count last two columns
-                       i != len(line) - 2])    # (total and text)
+        try:
+            mat.append([float(e)/float(line[-2])*100 for i, e \
+                        in enumerate(line) \
+                        if i != opts.id_col and \
+                           (not ignorecols or not i in ignorecols) and \
+                           (not onlycols or i in onlycols) and
+                           i != len(line) - 1 and  # don't count last two cols
+                           i != len(line) - 2])    # (total and text)
+        except ZeroDivisionError:
+            pass
 
     mat = np.array(mat, dtype=np.float).transpose()
     plt.ylabel("%")
