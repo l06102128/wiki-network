@@ -26,10 +26,12 @@ class TestPyWC(unittest.TestCase):
     def testCleanHTML(self):
         t = ("<div><b>42</b> is the <a href='#'>answer</a></div>",
              "<span>Hello World</span>",
-             "<!-- I mustn't read this --> Are comments being filtered?")
+             "<!-- I mustn't read this --> Are comments being filtered?",
+             "I don't &amp; like HTML entities &dioji; LO&ppp;L")
         e = ("42 is the answer",
              "Hello World",
-             " Are comments being filtered?")
+             " Are comments being filtered?",
+             "I don't  like HTML entities  LOL")
         for i, s in enumerate(t):
             self.pywc._text = s
             self.pywc.clean_html_syntax()
@@ -44,7 +46,9 @@ class TestPyWC(unittest.TestCase):
              "[File:Case di Volano.jpg|thumb|250px|Volano vista da un dosso]",
              "vicino a [[Calliano (Trentino-Alto Adige)|Calliano]] c'e' un",
              "[[nap:test:Volano (TN)]]",
-             "andare in S.Marco")
+             "andare in S.Marco",
+             "[[Pagina|link fatto male poiche' manca una parentesi quadra " \
+             "e c'e' caratteri strani dentro? ;)]")
         e = ("Less taxes for everyone! ",
              "look here  lol lol :D ",
              "drink a relaxing Jack Daniel's",
@@ -53,7 +57,9 @@ class TestPyWC(unittest.TestCase):
              "Volano vista da un dosso",
              "vicino a Calliano c'e' un",
              "Volano (TN)",
-             "andare in S.Marco")
+             "andare in S.Marco",
+             "link fatto male poiche' manca una parentesi quadra " \
+             "e c'e' caratteri strani dentro? ;)")
         for i, s in enumerate(t):
             self.pywc._text = s
             self.pywc.clean_wiki_syntax()
