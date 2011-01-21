@@ -44,8 +44,8 @@ class PyWC:  # TODO write docstring!
     clean_html = True        # Clean HTML
 
     clean_regex = (
-        (re.compile(r"\s(\w\.)+"), ""),
-        (re.compile(r"\:\w{1,3}"), "")
+        (re.compile(r"(^|\s)(\w\.)+"), ""),
+        (re.compile(r"[\:|;|8|=|-]+[a-z](\s|$)", re.IGNORECASE), "")
     )
 
     # TODO TODO TODO TODO TODO
