@@ -50,7 +50,8 @@ class TestPyWC(unittest.TestCase):
              "[[nap:test:Volano (TN)]]",
              "andare in S.Marco",
              "[[Pagina|link fatto male poiche' manca una parentesi quadra " \
-             "e c'e' caratteri strani dentro? ;)]")
+             "e c'e' caratteri strani dentro? ;)]",
+             "[http://www.nps.gov/ Oklahoma City National Memorial] National")
         e = ("Less taxes for everyone! ",
              "look here  lol lol :D ",
              "drink a relaxing Jack Daniel's",
@@ -61,7 +62,8 @@ class TestPyWC(unittest.TestCase):
              "Volano (TN)",
              "andare in S.Marco",
              "link fatto male poiche' manca una parentesi quadra " \
-             "e c'e' caratteri strani dentro? ;)")
+             "e c'e' caratteri strani dentro? ;)",
+             "/ Oklahoma City National Memorial National")
         for i, s in enumerate(t):
             self.pywc._text = s
             self.pywc.clean_wiki_syntax()
