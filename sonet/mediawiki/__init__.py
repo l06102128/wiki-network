@@ -515,7 +515,7 @@ def _diff_text(prev_text, text):
     'like Python difflib a lot'
     """
     dmp = dmp_module.diff_match_patch()
-    #dmp.Diff_Timeout = 0.1
+    dmp.Diff_Timeout = 0.5
     d = dmp.diff_main(prev_text, text)
     dmp.diff_cleanupSemantic(d)
     res = []
