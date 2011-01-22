@@ -72,7 +72,7 @@ def main():
     timestamps = matplotlib.dates.date2num(timestamps)
     mat = np.array(mat, dtype=np.float).transpose()
 
-    plt.subplots_adjust(bottom=0.2)
+    #plt.subplots_adjust(bottom=0.2)
     plt.xticks(rotation=25)
     ax=plt.gca()
     xfmt = md.DateFormatter('%Y-%m-%d')
