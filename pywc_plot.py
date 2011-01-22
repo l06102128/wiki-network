@@ -85,7 +85,7 @@ def main():
         plt.plot(timestamps, series, "o-")
     plt.legend(header)
     plt.savefig(files[1])
-    plt.show()
+    #plt.show()
 
 if __name__ == "__main__":
     main()
