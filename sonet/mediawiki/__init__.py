@@ -503,7 +503,7 @@ def diff_text(opcodes, prev_text, text):
                 output.append(seqm.a[a0:a1])
     return ' '.join(output)
 
-def _diff_text(prev_text, text):
+def _diff_text(prev_text, text, timeout=1):
     """
     >>> s1 = 'I like Python difflib a lot'
     >>> s2 = 'I sometimes like this difflib very much'
@@ -515,7 +515,8 @@ def _diff_text(prev_text, text):
     'like Python difflib a lot'
     """
     dmp = dmp_module.diff_match_patch()
-    dmp.Diff_Timeout = 0.5
+    if timeout > 0:
+        dmp.Diff_Timeout = timeout
     d = dmp.diff_main(prev_text, text)
     dmp.diff_cleanupSemantic(d)
     res = []
