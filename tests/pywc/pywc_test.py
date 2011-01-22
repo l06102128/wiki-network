@@ -41,7 +41,7 @@ class TestPyWC(unittest.TestCase):
 
     def testCleanWiki(self):
         t = ("Less taxes for everyone! {{citation needed}}",
-             "look here http://google.it lol lol :D http://wikipedia.com",
+             "look here http://google.it/a/lol.html lol lol :D http://wiki.com",
              "drink a relaxing [Jack Daniel's]",
              "If you want some [Wikipedia:Help] look here",
              "| name =goofy, |city =New York",
@@ -63,7 +63,7 @@ class TestPyWC(unittest.TestCase):
              "andare in S.Marco",
              "link fatto male poiche' manca una parentesi quadra " \
              "e c'e' caratteri strani dentro? ;)",
-             "/ Oklahoma City National Memorial National")
+             " Oklahoma City National Memorial National")
         for i, s in enumerate(t):
             self.pywc._text = s
             self.pywc.clean_wiki_syntax()

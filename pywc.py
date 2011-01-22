@@ -51,7 +51,7 @@ class PyWC:  # TODO write docstring!
 
     # TODO TODO TODO TODO TODO
     clean_wiki_regex = (
-        (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+"), ""),
+        (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+(\S+)?"), ""),
         (re.compile(r"\[{1,2}([^\:\|]+?)\]{1,2}", re.DOTALL), r"\1"),
         (re.compile(r"\[{1,2}.+?[\||\:]([^\|^\:]+?)\]{1,2}", re.DOTALL), r"\1"),
         (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
