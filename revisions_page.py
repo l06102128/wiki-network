@@ -31,6 +31,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     _prev_text = ""
     get_talks = True
     get_articles = True
+    diff_timeout = 0.5
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
@@ -56,7 +57,9 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         page = {'title': smart_str(self._title),
                 'lang': self.lang,
                 'timestamp': self._date,
-                'text': smart_str(_diff_text(self._prev_text, self._text)[0]),
+                'text': smart_str(_diff_text(self._prev_text,
+                                             self._text,
+                                             timeout=self.diff_timeout)[0]),
                 'type': self._type}
         self.queue.append(page)
         self._prev_text = self._text
@@ -121,7 +124,10 @@ def main():
                  help="Type of page to analize (content|talk|all)")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
+    p.add_option('-T', "--timeout", action="store", dest="timeout", type=float,
+                 default=0.5, help="Diff timeout (default=0.5, 0=no timeout)")
     opts, files = p.parse_args()
+
     if len(files) != 3:
         p.error("Wrong parameters")
     if opts.verbose:
@@ -157,6 +163,7 @@ def main():
         processor.get_articles = False
     elif opts.type == 'content':
         proessor.get_talks = False
+    processor.diff_timeout = opts.timeout
     processor.set_desired(desired_pages)
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
