@@ -1,13 +1,42 @@
 #!/usr/bin/env python
 
 import matplotlib
-matplotlib.use("Agg")
+matplotlib.use("pdf")
+from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import matplotlib.dates as md
 from datetime import datetime as dt
+from datetime import timedelta
 
 import csv
 import numpy as np
+
+def calc_perc(n, total, perc):
+    if perc:
+        try:
+            return float(n)/float(total)*100
+        except ZeroDivisionError:
+            return 0
+    else:
+        return float(n)
+
+def collapse_values(timestamps, values, radius):
+    t = []
+    s = []
+    delta = timedelta(days=radius)
+    first = timestamps[0]
+    curr = []
+    i = 0
+    for j in timestamps:
+        if (j - first) < delta:
+            curr.append(j)
+        else:
+            t.append(curr[-1])
+            s.append(sum([x for x in values[i:i+len(curr)]]))
+        first = j
+        i += 1
+    print t, s
+    return t, s
 
 def main():
     import optparse
@@ -23,7 +52,12 @@ def main():
     p.add_option('-o', '--onlycols', action="store", dest="onlycols",
                  help="Select only this set of columns" + \
                       "(comma separated and starting from 0)")
+    p.add_option('-p', '--percentages', action="store_true", dest="perc",
+                 help="Use percentages instead of absolute value")
+    p.add_option('-w', '--window', action="store", dest="window", type=int,
+                 help="Collapse days")
     opts, files = p.parse_args()
+
     if len(files) != 2:
         p.error("Wrong parameters")
     if opts.verbose:
@@ -56,36 +90,44 @@ def main():
     timestamps = []
 
     for line in content[1:]:
-        try:
-            mat.append([float(e)/float(line[-2])*100 for i, e \
-                        in enumerate(line) \
-                        if i != opts.id_col and \
-                           (not ignorecols or not i in ignorecols) and \
-                           (not onlycols or i in onlycols) and
-                           i != len(line) - 1 and  # don't count last two cols
-                           i != len(line) - 2])    # (total and text)
-            timestamps.append(dt.strptime(line[opts.id_col],
-                              "%Y-%m-%dT%H:%M:%SZ"))
-        except ZeroDivisionError:
-            pass
+        mat.append([calc_perc(e, line[-2], opts.perc) for i, e \
+                    in enumerate(line) \
+                    if i != opts.id_col and \
+                       (not ignorecols or not i in ignorecols) and \
+                       (not onlycols or i in onlycols) and
+                       i != len(line) - 1 and  # don't count last two cols
+                       i != len(line) - 2])    # (total and text)
+        timestamps.append(dt.strptime(line[opts.id_col],
+                          "%Y-%m-%dT%H:%M:%SZ"))
 
-    timestamps = matplotlib.dates.date2num(timestamps)
+    collapse_values(timestamps, [], 5)
+
     mat = np.array(mat, dtype=np.float).transpose()
 
-    plt.subplots_adjust(bottom=0.2)
-    plt.xticks(rotation=25)
-    ax=plt.gca()
-    xfmt = md.DateFormatter('%Y-%m-%d')
-    ax.xaxis.set_major_formatter(xfmt)
+    pp = PdfPages(files[1])
+    for i, series in enumerate(mat):
+        plt.clf()
+        plt.subplots_adjust(bottom=0.2)
+        plt.xticks(rotation=25)
+        ax=plt.gca()
+        xfmt = md.DateFormatter('%Y-%m-%d')
+        ax.xaxis.set_major_formatter(xfmt)
+        ax.yaxis.set_data_interval(0.0001, None, False)
+        if opts.perc:
+            plt.ylabel("%")
+        else:
+            plt.xlabel("")
+        plt.xlabel("Revisions Timestamp")
 
-    plt.ylabel("%")
-    plt.xlabel("Revisions Timestamp")
-
-    for series in mat:
-        plt.plot(timestamps, series, "o-")
-    plt.legend(header)
-    plt.savefig(files[1])
-    #plt.show()
+        s = [x for x in series if x != 0]  # Don't plot zeros!
+        t = [x for k, x in enumerate(timestamps) if series[k] != 0]
+        if opts.window:
+           t, s = collapse_values(t, s, opts.window)
+        if t and s:
+            plt.plot(matplotlib.dates.date2num(t), s, "-o")
+            plt.title(header[i])
+            pp.savefig()
+    pp.close()
 
 if __name__ == "__main__":
     main()
