@@ -24,7 +24,7 @@ import sys
 import logging
 from sonet.timr import Timr
 
-
+# TODO: check if input file is -meta-history
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
     _skip = None
