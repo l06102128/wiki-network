@@ -14,6 +14,16 @@ import numpy as np
 # Quite ugly, TODO: if it's possible use groupby
 # [list(e) for k,e in groupby([11,12,13,21],(lambda x : x//10 ))]
 def collapse_values(timestamps, values, totals, radius):
+    """
+    >>> t = [dt(2011, 01, 20, 0, 0), dt(2011, 01, 20, 0, 0), \
+             dt(2011, 01, 22, 0, 0), dt(2011, 01, 23, 0, 0), \
+             dt(2011, 01, 28, 0, 0), dt(2011, 01, 30, 0, 0), \
+             dt(2011, 01, 31, 0, 0)]
+    >>> v = [1,2,3,4,5,6,7]
+    >>> tot = [2,3,4,5,6,7, 8]
+    >>> collapse_values(t, v, tot, 2)
+    ([datetime.datetime(2011, 1, 20, 0, 0), datetime.datetime(2011, 1, 23, 0, 0), datetime.datetime(2011, 1, 28, 0, 0), datetime.datetime(2011, 1, 31, 0, 0)], [3, 7, 5, 13], [5, 9, 6, 15])
+    """
     t = []
     s = []
     tot = []
@@ -25,12 +35,21 @@ def collapse_values(timestamps, values, totals, radius):
         if (j - first) < delta:
             curr.append(j)
         else:
-            t.append(curr[-1])  # Use last timestamp of the group
-            # Sum values and totals of the current group
-            s.append(sum([x for x in values[i:i+len(curr)]]))
-            tot.append(sum([x for x in totals[i:i+len(curr)]]))
-        first = j
+            try:
+                t.append(curr[-1])  # Use last timestamp of the group
+                # Sum values and totals of the current group
+                s.append(sum(values[i-len(curr):i]))
+                tot.append(sum(totals[i-len(curr):i]))
+            except IndexError:
+                t.append(j)
+                s.append(values[i])
+                tot.append(totals[i])
+            curr = [j]
+            first = j
         i += 1
+    t.append(curr[-1])
+    s.append(sum(values[i-len(curr):i]))
+    tot.append(sum(totals[i-len(curr):i]))
     return t, s, tot
 
 def _gen_data(line, id_col, ignorecols, onlycols):
