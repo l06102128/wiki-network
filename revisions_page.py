@@ -24,7 +24,7 @@ import sys
 import logging
 from sonet.timr import Timr
 
-# TODO: check if input file is -meta-history
+
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     queue = None
     _skip = None
@@ -116,6 +116,11 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
                          "Pages in the desired list must not be redirects.")
 
 
+def dumps_checker(dump_name):
+    import re
+    assert re.search('.-(meta-history)', dump_name), \
+           "Wrong dump file, required: *-meta-history"
+
 def main():
     import optparse
     p = optparse.OptionParser(
@@ -139,6 +144,8 @@ def main():
     xml = files[0]
     desired_pages_fn = files[1]
     output = files[2]
+
+    dumps_checker(xml)
 
     with open(desired_pages_fn, 'rb') as f:
         desired_pages = [l[0].decode('latin-1') for l in csv.reader(f)
