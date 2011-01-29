@@ -17,6 +17,8 @@ def main():
                  help="Select a specific page")
     p.add_option('-t', '--type', action="store", dest="type",
                  help="Select a specific page type (normal|talk)")
+    p.add_option('-i', '--info', action="store_true", dest="info",
+                 help="Get info about CSV file")
     opts, files = p.parse_args()
     if len(files) != 1:
         p.error("Wrong parameters")
@@ -32,13 +34,21 @@ def main():
                             quoting=csv.QUOTE_ALL)
     csv.field_size_limit(1000000000)
 
+    if opts.info:
+        counter = 0
+        for line in csv_reader:
+            counter += 1
+        print "CSV info:"
+        print "Number of lines: %d" % counter
+        exit(0)
+
     # really ugly but doesn't eat memory
     i = 0
     for line in csv_reader:
         if opts.lines is not None and i >= opts.lines:
             break
         if (opts.page is None or line[2] == opts.page) and \
-                (opts.type is None or line[3] == opts.type):
+           (opts.type is None or line[3] == opts.type):
             csv_writer.writerow(line)
             i += 1
 
