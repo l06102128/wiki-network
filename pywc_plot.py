@@ -9,12 +9,15 @@ from datetime import datetime as dt
 from datetime import timedelta
 import csv
 import numpy as np
-
+import sys
+import logging
 
 # Quite ugly, TODO: if it's possible use groupby
 # [list(e) for k,e in groupby([11,12,13,21],(lambda x : x//10 ))]
 def collapse_values(timestamps, values, totals, radius):
     """
+    Function that collapses timestamps and values in a time window
+
     >>> t = [dt(2011, 01, 20, 0, 0), dt(2011, 01, 20, 0, 0), \
              dt(2011, 01, 22, 0, 0), dt(2011, 01, 23, 0, 0), \
              dt(2011, 01, 28, 0, 0), dt(2011, 01, 30, 0, 0), \
@@ -23,7 +26,13 @@ def collapse_values(timestamps, values, totals, radius):
     >>> tot = [2,3,4,5,6,7, 8]
     >>> collapse_values(t, v, tot, 2)
     ([datetime.datetime(2011, 1, 20, 0, 0), datetime.datetime(2011, 1, 23, 0, 0), datetime.datetime(2011, 1, 28, 0, 0), datetime.datetime(2011, 1, 31, 0, 0)], [3, 7, 5, 13], [5, 9, 6, 15])
+    >>> collapse_values(t, v, tot, 4)
+    ([datetime.datetime(2011, 1, 23, 0, 0), datetime.datetime(2011, 1, 31, 0, 0)], [10, 18], [14, 21])
+    >>> collapse_values(t, v, tot, 999)
+    ([datetime.datetime(2011, 1, 31, 0, 0)], [28], [35])
     """
+    if not radius > 0:
+        raise ValueError("Radius must be > 0")
     t = []
     s = []
     tot = []
@@ -134,14 +143,14 @@ def main():
         t = [x for k, x in enumerate(timestamps) if series[k] != 0]
         tot = [x for k, x in enumerate(totals) if series[k] != 0]
 
-        if opts.window:
+        if opts.window and t and s and tot:
             t, s, tot = collapse_values(t, s, tot, opts.window)
 
         if opts.perc:
             # Calculate percentages
             s = [x/tot[k]*100 for k, x in enumerate(s)]
             # Set axis limit 0-100 FIXME IS IT GOOD OR BAD?
-            ax.set_ylim(0, 100)
+            #ax.set_ylim(0, 100)
             plt.ylabel("%")
 
         if t and s:

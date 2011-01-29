@@ -18,16 +18,19 @@
 import csv
 csv.field_size_limit(100000000)
 import sys
+import logging
 try:
     import re2 as re
 except ImportError:
     logging.warn("pyre2 not available. It's gonna be a long job")
     import re
-import logging
 from sonet.timr import Timr
 
 
-class PyWC:  # TODO write docstring!
+class PyWC:
+    """
+    PyWC is a python class for word counting and text analisys.
+    """
     # Global proprieties (of the whole source file)
     categories = None        # Dictionary's categories
     keywords = None          # Dictionary's keywords/regex
@@ -78,6 +81,7 @@ class PyWC:  # TODO write docstring!
                        # (useful for conditional exps)
     _counter = 0       # Generic counter of how many pieces of
                        # text have been analized
+    _keys = None
 
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
@@ -114,7 +118,7 @@ class PyWC:  # TODO write docstring!
                             line[0] = line[0][:-1]
                         else:
                             line[0] = "".join([line[0], "$"])
-                    except:
+                    except IndexError:
                         continue
                 yield (re.compile(line[0]), line[1:])
 
@@ -281,7 +285,12 @@ class PyWC:  # TODO write docstring!
 
         # Creates a list of category names sorted by their ID.
         # Useful because Python dictionaries are not sorted objects!
-        cat_names = [x[1] for x in sorted(self.categories.items())]
+        # Sorting like TAWC
+        try:
+            cat_names = [x[1] for x in sorted([(int(a), b) for a, b in \
+                                               self.categories.items()])]
+        except ValueError:
+            cat_names = [x[1] for x in sorted(self.categories.items())]
 
         self._keys = ["id"] + cat_names + ["total", "text"]
         self.csv_writer = csv.DictWriter(self.csv_out,

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+"""
+Simple script useful to cut or extract only specific pages from
+the output of revisions_page.py
+"""
 
 import csv
 from sys import stdout
@@ -23,8 +27,7 @@ def main():
     if len(files) != 1:
         p.error("Wrong parameters")
 
-    fn = files[0]
-    csv_reader = csv.reader(open(fn, 'r'),
+    csv_reader = csv.reader(open(files[0], 'r'),
                             delimiter=opts.delimiter,
                             quotechar=opts.quotechar,
                             quoting=csv.QUOTE_ALL)

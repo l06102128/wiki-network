@@ -26,9 +26,11 @@ from sonet.timr import Timr
 
 
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
+    output = None
     queue = None
     _skip = None
     _prev_text = ""
+    _text = None
     get_talks = True
     get_articles = True
     diff_timeout = 0.5
@@ -43,6 +45,9 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
                                          quoting=csv.QUOTE_ALL)
 
     def flush(self):
+        """
+        Flushes queue in the CSV output
+        """
         pages = [{'title': page['title'],
                   'lang': self.lang,
                   'timestamp': page['timestamp'],
@@ -52,6 +57,10 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.queue = []
 
     def save(self):
+        """
+        Saves data to the queue.
+        The queue is stored using self.flush()
+        """
         if self._text is None: # difflib doesn't like NoneType
             self._text = ""
         page = {'title': smart_str(self._title),
@@ -84,8 +93,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             if not self._desired:
                 self._skip = True
             else:
-                logging.info('Start processing desired page %s (%s)' % \
-                             (self._title, self._type))
+                logging.info('Start processing desired page %s (%s)',
+                             self._title, self._type)
 
     def process_timestamp(self, elem):
         if self._skip:
@@ -98,17 +107,17 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self._text = elem.text
         self.save()
 
-    def process_page(self, elem):
+    def process_page(self, _):
         self.count += 1
         if not self.count % 1000:
-            logging.info(' ### Processed %d pages' % self.count)
+            logging.info(' ### Processed %d pages', self.count)
         self.delattr(("text"))
         if not self._skip:
             with Timr('Flushing %s' % self._title):
                 self.flush()
         self._skip = False
 
-    def process_redirect(self, elem):
+    def process_redirect(self, _):
         # This class only considers pages that are in the desired file,
         # these pages must not be redirects
         self._skip = True
@@ -117,6 +126,14 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
 
 def dumps_checker(dump_name):
+    """
+    Checks if wikimedia dump is *-meta-history in order to extract
+    revisions
+    >>> dumps_checker("wikimedia-pages-current")
+    Traceback (most recent call last):
+    AssertionError: Wrong dump file, required: *-meta-history
+    >>> dumps_checker("wikimedia-pages-meta-history")
+    """
     import re
     assert re.search('.-(meta-history)', dump_name), \
            "Wrong dump file, required: *-meta-history"
@@ -169,7 +186,7 @@ def main():
     if opts.type == 'talk':
         processor.get_articles = False
     elif opts.type == 'content':
-        proessor.get_talks = False
+        processor.get_talks = False
     processor.diff_timeout = opts.timeout
     processor.set_desired(desired_pages)
     with Timr('Processing'):

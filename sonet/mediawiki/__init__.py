@@ -311,7 +311,8 @@ def get_namespaces(src):
 
         while 1:
             line = src.readline()
-            if not line: break
+            if not line:
+                break
             keys = re.findall(
                 r'<namespace key="(-?\d+)"[^>]*>([^<]*)</namespace>', line)
             for key, ns in keys:
@@ -489,7 +490,7 @@ def diff_text(opcodes, prev_text, text):
     'Py on a lot'
     """
     seqm = difflib.SequenceMatcher(None, prev_text, text)
-    output= []
+    output = []
     for opcode, a0, a1, b0, b1 in seqm.get_opcodes():
         if opcode == 'replace':
             if 'replace' in opcodes:
@@ -519,10 +520,9 @@ def _diff_text(prev_text, text, timeout=1):
         dmp.Diff_Timeout = timeout
     d = dmp.diff_main(prev_text, text)
     dmp.diff_cleanupSemantic(d)
-    res = []
-    insert = [x[1] for x in d if x[0]==1]
-    delete = [x[1] for x in d if x[0]==-1]
-    equal = [x[1] for x in d if x[0]==0]
+    insert = [x[1] for x in d if x[0] == 1]
+    delete = [x[1] for x in d if x[0] == -1]
+    equal = [x[1] for x in d if x[0] == 0]
     return " ".join(insert), " ".join(delete), " ".join(equal)
 
 

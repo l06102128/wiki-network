@@ -52,7 +52,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             for q in self.queue:
                 if q and q != '':
                     if self.output:
-                        print >>self.output, q
+                        print >> self.output, q
                     else:
                         print q
             self.queue = []
@@ -158,7 +158,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     def process_page(self, elem):
 
         if not self._skip and not self._desired and self.threshold < 1.:
-           if random() > self.threshold:
+            if random() > self.threshold:
                 self._skip = True
 
         if not self._skip and self.n_users and \
