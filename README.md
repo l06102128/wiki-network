@@ -97,3 +97,23 @@ Data are stored in a database.
 ### countwords_groups.py
 Given a current dump, count words found on every UTP and return the results
 by group (the group which the user belongs).
+
+### pywc.py
+Script similar to TAWC/LIWC. Used to analise text in wikipedia revisions_page
+output. As it has been developed for wikipedia, it contains some functions to
+clean the text. Basically accepts as input a dictionary with categories and a
+sort of regular expressions and counts words.
+
+### pywc_plot.py
+pywc_plot is used to plot pywc results.
+
+### revisions_page.py
+This script extracts all the revisions of a list of pages.
+It's possible to specify which kind of page you want to analize
+(all, content only, talk only). Data are outputted in a csv file.
+
+### csv_maipulation.py
+Used to manage files exported by revisions_page.py (text cells can contain
+new lines so it is possible to manage them easily with head, tail, awk, ...)
+Using this script you can extract only specific pages or a little number of
+revisions from a huge file

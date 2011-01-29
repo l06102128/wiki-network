@@ -7,11 +7,11 @@ class TestPyWC(unittest.TestCase):
         self.pywc = PyWC()
         self.pywc.set_dic("tests/pywc/simple-dic.dic")
 
-    def testReadDic(self):
+    def test_read_dic(self):
         self.assertEquals(len(self.pywc.categories), 4)
         self.assertEquals(len(self.pywc.keywords), 9)
 
-    def testClean(self):
+    def test_clean(self):
         t = (";D :E born in the U.S.A.! Yeah. A. :-D",
              "I feel sick today :S",
              ":My favourite TV series: The Big Bang Theory",
@@ -25,7 +25,7 @@ class TestPyWC(unittest.TestCase):
             self.pywc.clean_text()
             self.assertEquals(self.pywc._text, e[i])
 
-    def testCleanHTML(self):
+    def test_clean_HTML(self):
         t = ("<div><b>42</b> is the <a href='#'>answer</a></div>",
              "<span>Hello World</span>",
              "<!-- I mustn't read this --> Are comments being filtered?",
@@ -39,7 +39,7 @@ class TestPyWC(unittest.TestCase):
             self.pywc.clean_html_syntax()
             self.assertEquals(self.pywc._text, e[i])
 
-    def testCleanWiki(self):
+    def test_clean_wiki(self):
         t = ("Less taxes for everyone! {{citation needed}}",
              "look here http://google.it/a/lol.html lol lol :D http://wiki.com",
              "drink a relaxing [Jack Daniel's]",
@@ -69,7 +69,7 @@ class TestPyWC(unittest.TestCase):
             self.pywc.clean_wiki_syntax()
             self.assertEquals(self.pywc._text, e[i])
 
-    def testOutput(self):
+    def test_output(self):
         expected = "".join([line for line in \
                             open("tests/pywc/pywc_expected.csv")])
         self.pywc.csv_out = open("tests/pywc/pywc_result.csv", "w")
