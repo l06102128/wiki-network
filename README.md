@@ -5,9 +5,8 @@ To solve dependencies:
 ## Scripts
 ### utpedits2graph.py
 Count edits on User Talk Pages and create a graph from it. Save the graph as a pickled iGraph object.
-
-The graph is directed and weighted. For example, two edits made by User A on User B's Talk Page is represented as an edge from A to B with weight = 2.
-
+The graph is directed and weighted. For example, two edits made by User A on User B's Talk Page is
+represented as an edge from A to B with weight = 2.
 This script should be used on complete dumps and on stub.
 
 ### signature2graph.py
@@ -23,12 +22,10 @@ creates a new pickled iGraph object.
 ### graph_analysis.py
 Network analysis tool. Use ./graph_analysis --help to see available parameters
 Note: transitivity isn't available yet. don't use summary with --as-table.
-      Use --histogram, --gnuplot, --plot alone
+Use --histogram, --gnuplot, --plot alone
 
 ### graph_longitudinal_analysis.py
-Network longitudinal analysis. Possible analysis:
-   1. cumulative
-   2. time slices
+Network longitudinal analysis. Possible analysis: cumulative, time slices
 
 ### usercontributions.py
 Given a stub dump, this script counts contributions for every user on the whole wikipedia.
