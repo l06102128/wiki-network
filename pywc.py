@@ -166,7 +166,7 @@ class PyWC:
         del tmp
         self._counter += 1
         if self._counter % self.flush_n == 0:
-            logging.info("### Flushing: %d" % self._counter)
+            logging.info("### Flushing: %d", self._counter)
             self.flush()
 
     def parse_word(self, word):
@@ -205,21 +205,29 @@ class PyWC:
             try:
                 self._results[c] += 1
             except KeyError:
-                logging.warn("Invalid category id %s" % c)
+                logging.warn("Invalid category id %s", c)
         self._total += 1
         self._prev_cat = cat
 
     def clean_wiki_syntax(self):
+        """
+        Cleans self._text from wiki syntax
+        """
         # TODO FILTER WIKI SYNTAX
         for regex, replace in self.clean_wiki_regex:
             self._text = regex.sub(replace, self._text)
 
     def clean_html_syntax(self):
-        # TODO
+        """
+        Cleans self._text from HTML tags and comments
+        """
         for regex, replace in self.clean_html_regex:
             self._text = regex.sub(replace, self._text)
 
     def clean_text(self):
+        """
+        Cleans self._text from emoticons and acronyms
+        """
         for regex, replace in self.clean_regex:
             self._text = regex.sub(replace, self._text)
 
@@ -270,9 +278,9 @@ class PyWC:
                 if i != self.id_col and not i in self.ignorecols:
                     self.parse_col(col)
             else:
-                logging.warn(" Line %d:%d skipped " \
-                             "because longer than %d chars" % \
-                             (self._counter, i, self.max_char_limit))
+                logging.warn(" Line %d:%d skipped "
+                             "because longer than %d chars",
+                             self._counter, i, self.max_char_limit)
 
     def start(self, src):
         """

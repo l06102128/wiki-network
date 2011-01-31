@@ -25,6 +25,7 @@ class TestCSVManipulation(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestPyWC)
+    suite = unittest.defaultTestLoader.loadTestsFromTestCase(
+                TestCSVManipulation)
     runner = unittest.TextTestRunner()
     runner.run(suite)

@@ -11,8 +11,9 @@ import csv
 import numpy as np
 import sys
 import logging
+from sonet.timr import Timr
 
-# Quite ugly, TODO: if it's possible use groupby
+# Quite ugly, if it's possible use groupby
 # [list(e) for k,e in groupby([11,12,13,21],(lambda x : x//10 ))]
 def collapse_values(timestamps, values, totals, radius):
     """
@@ -33,8 +34,8 @@ def collapse_values(timestamps, values, totals, radius):
     """
     if not radius > 0:
         raise ValueError("Radius must be > 0")
-    t = []
-    s = []
+    time = []
+    ser = []
     tot = []
     delta = timedelta(days=radius)
     first = timestamps[0]
@@ -45,37 +46,40 @@ def collapse_values(timestamps, values, totals, radius):
             curr.append(j)
         else:
             try:
-                t.append(curr[-1])  # Use last timestamp of the group
+                time.append(curr[-1])  # Use last timestamp of the group
                 # Sum values and totals of the current group
-                s.append(sum(values[i-len(curr):i]))
+                ser.append(sum(values[i-len(curr):i]))
                 tot.append(sum(totals[i-len(curr):i]))
             except IndexError:
-                t.append(j)
-                s.append(values[i])
+                time.append(j)
+                ser.append(values[i])
                 tot.append(totals[i])
             curr = [j]
             first = j
         i += 1
-    t.append(curr[-1])
-    s.append(sum(values[i-len(curr):i]))
+    time.append(curr[-1])
+    ser.append(sum(values[i-len(curr):i]))
     tot.append(sum(totals[i-len(curr):i]))
-    return t, s, tot
+    return time, ser, tot
 
 def _gen_data(line, id_col, ignorecols, onlycols):
-    for i, e in enumerate(line):
+    """
+    Generator to extract only desired columns from csv content
+    """
+    for i, elem in enumerate(line):
         if i != id_col and \
            (not ignorecols or not i in ignorecols) and \
            (not onlycols or i in onlycols) and \
            i != len(line) - 1 and  \
            i != len(line) - 2: # don't count last two cols
-            yield e
+            yield elem
 
 def main():
     import optparse
     p = optparse.OptionParser(
         usage="usage: %prog [options] input_file output_file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
-                 help="Verbose output (like timings)")
+                 help="Verbose output")
     p.add_option('-i', '--ignorecols', action="store", dest="ignorecols",
                  help="Coulmns numbers of the source file to ignore" + \
                       "(comma separated and starting from 0)")
@@ -107,7 +111,7 @@ def main():
 
     # content contains all the csv file
     content = [row for i, row in enumerate(csv_reader)]
-
+    # CSV header, only of interesting columns
     header = [x for x in _gen_data(content[0], opts.id_col,
                                    ignorecols, onlycols)]
 
@@ -126,38 +130,42 @@ def main():
                           "%Y-%m-%dT%H:%M:%SZ"))
 
     mat = np.array(mat, dtype=np.float).transpose()
+    logging.info("Input file read. Ready to plot")
+    pdf_pag = PdfPages(files[1])
 
-    pp = PdfPages(files[1])
-    for i, series in enumerate(mat):
-        plt.clf()
-        plt.subplots_adjust(bottom=0.2)
-        plt.xticks(rotation=25)
-        ax = plt.gca()
-        xfmt = md.DateFormatter('%Y-%m-%d')
-        ax.xaxis.set_major_formatter(xfmt)
-        #ax.yaxis.set_data_interval(0.0001, None, False)
-        plt.xlabel("Revisions Timestamp")
+    with Timr("Plotting"):
+        for i, series in enumerate(mat):
+            logging.info("Plotting page %d", i+1)
+            plt.clf()
+            plt.subplots_adjust(bottom=0.2)
+            plt.xticks(rotation=25)
+            axis = plt.gca()
+            xfmt = md.DateFormatter('%Y-%m-%d')
+            axis.xaxis.set_major_formatter(xfmt)
+            #axis.yaxis.set_data_interval(0.0001, None, False)
+            plt.xlabel("Revisions Timestamp")
 
-        # Don't plot zeros and skip zero revisions!
-        s = [x for x in series if x != 0]
-        t = [x for k, x in enumerate(timestamps) if series[k] != 0]
-        tot = [x for k, x in enumerate(totals) if series[k] != 0]
+            # Don't plot zeros and skip zero revisions!
+            ser = [x for x in series if x != 0]
+            time = [x for k, x in enumerate(timestamps) if series[k] != 0]
+            tot = [x for k, x in enumerate(totals) if series[k] != 0]
 
-        if opts.window and t and s and tot:
-            t, s, tot = collapse_values(t, s, tot, opts.window)
+            if opts.window and time and ser and tot:
+                time, ser, tot = collapse_values(time, ser, tot,
+                                                   opts.window)
 
-        if opts.perc:
-            # Calculate percentages
-            s = [x/tot[k]*100 for k, x in enumerate(s)]
-            # Set axis limit 0-100 FIXME IS IT GOOD OR BAD?
-            #ax.set_ylim(0, 100)
-            plt.ylabel("%")
+            if opts.perc:
+                # Calculate percentages
+                ser = [x/tot[k]*100 for k, x in enumerate(ser)]
+                # Set axis limit 0-100 IS IT GOOD OR BAD?
+                #axis.set_ylim(0, 100)
+                plt.ylabel("%")
 
-        if t and s:
-            plt.plot(matplotlib.dates.date2num(t), s, "-o")
-            plt.title(header[i])
-            pp.savefig()
-    pp.close()
+            if time and ser:
+                plt.plot(matplotlib.dates.date2num(time), ser, "-o")
+                plt.title(header[i])
+                pdf_pag.savefig()
+        pdf_pag.close()
 
 if __name__ == "__main__":
     main()

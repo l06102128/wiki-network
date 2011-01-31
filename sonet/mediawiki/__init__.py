@@ -27,7 +27,7 @@ from collections import namedtuple, defaultdict
 import json
 import difflib
 import diff_match_patch as dmp_module
-from pageprocessor import PageProcessor, HistoryPageProcessor
+from sonet.mediawiki.pageprocessor import PageProcessor, HistoryPageProcessor
 
 
 def fast_iter(context, func):
