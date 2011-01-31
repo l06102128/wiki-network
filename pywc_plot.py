@@ -70,7 +70,7 @@ def _gen_data(line, id_col, ignorecols, onlycols):
         if i != id_col and \
            (not ignorecols or not i in ignorecols) and \
            (not onlycols or i in onlycols) and \
-           i != len(line) - 1 and  \
+           i != len(line) - 1 and \
            i != len(line) - 2: # don't count last two cols
             yield elem
 
@@ -81,7 +81,7 @@ def main():
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output")
     p.add_option('-i', '--ignorecols', action="store", dest="ignorecols",
-                 help="Coulmns numbers of the source file to ignore" + \
+                 help="Coulmns numbers of the source file to ignore"
                       "(comma separated and starting from 0)")
     p.add_option('-I', '--id', action="store", dest="id_col", type="int",
                  help="Id column number (starting from 0)", default=0)

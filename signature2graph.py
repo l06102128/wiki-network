@@ -22,6 +22,7 @@ from sonet.mediawiki import PageProcessor
 from sonet import lib
 from sonet.timr import Timr
 
+
 class CurrentPageProcessor(PageProcessor):
     """
     Inherits PageProcessor to process "current" dumps of wikipedia to find
@@ -79,6 +80,7 @@ class CurrentPageProcessor(PageProcessor):
     def end(self):
         self.ecache.flush()
 
+
 def main():
     import optparse
 
@@ -89,7 +91,8 @@ def main():
                  help="Signature in this language (e.g. sig, firma..)")
     opts, files = p.parse_args()
     if opts.verbose:
-        import sys, logging
+        import sys
+        import logging
         logging.basicConfig(stream=sys.stderr,
                             level=logging.DEBUG)
 

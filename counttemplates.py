@@ -39,7 +39,7 @@ queue, done_queue = Queue(), Queue()
 
 ### CHILD PROCESS
 def merge_templates(big, small):
-    for k,v in small.iteritems():
+    for k, v in small.iteritems():
         big.setdefault(k, 0) #set big[k] if not already defined
         big[k] += v
 
@@ -103,7 +103,7 @@ def process_page(elem, queue=None):
 
                 count += 1
                 if not count % 500:
-                    print >>sys.stderr, count
+                    print >> sys.stderr, count
 
 
 def main():
@@ -112,8 +112,7 @@ def main():
     from operator import itemgetter
 
     p = optparse.OptionParser(
-        usage="usage: %prog [options] current_dump rich_graph"
-    )
+        usage="usage: %prog [options] current_dump rich_graph")
     _, files = p.parse_args()
 
     if len(files) != 2:
@@ -134,7 +133,7 @@ def main():
     assert lang_user_talk, "User Talk namespace not found"
 
     user_classes = dict(sg_load(rich_fn).get_user_class('username',
-                            ('anonymous', 'bot', 'bureaucrat','sysop')))
+                            ('anonymous', 'bot', 'bureaucrat', 'sysop')))
 
     p = Process(target=get_freq_dist, args=(queue, done_queue))
     p.start()
@@ -144,7 +143,7 @@ def main():
     mwlib.fast_iter(etree.iterparse(src, tag=tag['page']),
                     partial_process_page)
 
-    print >>sys.stderr, "end of XML processing"
+    print >> sys.stderr, "end of XML processing"
 
     queue.put(None) ## this STOPS the process
     templates = done_queue.get()

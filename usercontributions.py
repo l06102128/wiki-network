@@ -345,7 +345,7 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
             except AttributeError:
                 ## if username is defined but empty, look for id tag
                 self._sender = contributor.find(self.tag['id']).text
-            
+
         if self._sender is None:
             self._skip_revision = True
 

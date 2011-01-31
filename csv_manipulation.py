@@ -7,6 +7,7 @@ the output of revisions_page.py
 import csv
 from sys import stdout
 
+
 def main():
     import optparse
     p = optparse.OptionParser(

@@ -81,7 +81,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if len(a_title) == 1 and self.get_articles:
             self._type = 'normal'
             self._title = a_title[0]
-        elif len(a_title) == 2 and a_title[0] == self.talkns and
+        elif len(a_title) == 2 and a_title[0] == self.talkns and \
              self.get_talks:
             self._type = 'talk'
             self._title = a_title[1]
@@ -137,6 +137,7 @@ def dumps_checker(dump_name):
     import re
     assert re.search('.-(meta-history)', dump_name), \
            "Wrong dump file, required: *-meta-history"
+
 
 def main():
     import optparse

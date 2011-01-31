@@ -49,14 +49,14 @@ class PyWC:
 
     clean_regex = (
         (re.compile(r"(^|\s)(\w\.)+"), ""),
-        (re.compile(r"[\:|;|8|=|-]+[a-z](\s|$)", re.IGNORECASE), "")
-    )
+        (re.compile(r"[\:|;|8|=|-]+[a-z](\s|$)", re.IGNORECASE), ""))
 
     # TODO TODO TODO TODO TODO
     clean_wiki_regex = (
         (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+(\S+)?"), ""),
         (re.compile(r"\[{1,2}([^\:\|]+?)\]{1,2}", re.DOTALL), r"\1"),
-        (re.compile(r"\[{1,2}.+?[\||\:]([^\|^\:]+?)\]{1,2}", re.DOTALL), r"\1"),
+        (re.compile(r"\[{1,2}.+?[\||\:]([^\|^\:]+?)\]{1,2}",
+                    re.DOTALL), r"\1"),
         (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
         (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
         #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""))

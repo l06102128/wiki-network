@@ -27,6 +27,7 @@ from sonet import lib
 from sonet.timr import Timr
 from django.utils.encoding import smart_str
 
+
 class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     counter_saved = None
     queue = None
@@ -92,7 +93,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
         self._desired = self.is_desired(self._title)
 
-
     def process_text(self, elem):
         if self._skip:
             return
@@ -107,7 +107,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             return
         else:
             pass
-
 
     def process_timestamp(self, elem):
         if self._skip:
@@ -134,7 +133,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         else:
             pass
 
-
     def process_username(self, elem):
         if elem.text and elem.text != '':
             u = elem.text.encode('utf-8')
@@ -144,7 +142,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if u not in self._editors:
             self._editors.append(u)
 
-
     def process_ip(self, elem):
         if elem.text and elem.text != '':
             u = elem.text
@@ -153,7 +150,6 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
         if u not in self._editors:
             self._editors.append(u)
-
 
     def process_page(self, elem):
 
@@ -179,8 +175,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
         if not self._skip:
             self.queue.append(smart_str('%s%s' % (
-                'Talk:' if self._talk else '',self._title,))
-            )
+                'Talk:' if self._talk else '', self._title,)))
             self.counter_saved += 1
 
         self.counter_pages += 1
@@ -188,7 +183,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if not self.counter_pages % 10000:
             self.save()
             logging.info('PAGES: %d - SAVED: %d' %
-                         (self.counter_pages,self.counter_saved))
+                         (self.counter_pages, self.counter_saved))
 
         self._skip = False
 
@@ -212,6 +207,7 @@ def dumps_checker(args, type_):
     if args.min_text_length:
         assert type_ == '-pages-meta-current', \
                "Wrong dump file, required: pages-meta-current"
+
 
 def create_option_parser():
     import argparse
@@ -302,4 +298,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

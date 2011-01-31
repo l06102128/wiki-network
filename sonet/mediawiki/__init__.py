@@ -102,6 +102,7 @@ def isHardRedirect(raw):
 
 class SignatureFinder(object):
     re = None
+
     def __init__(self, user_aliases, lang=None, signature='Sig'):
         self.user_aliases = user_aliases
         self.lang = lang
@@ -114,11 +115,9 @@ class SignatureFinder(object):
             search += tuple([":%s:%s" % (self.lang, s) for s in search])
         rex = (
             r'\[\[(?:%(user_aliases)s):([^/]*?)[|\]][^\]]*\]'
-            +r'|\{\{(?:%(user_aliases)s):([^/]*?)/%(sig)s\}\}'
-            ) % {
-                'user_aliases': '|'.join(search),
-                'sig': self.signature
-            }
+            + r'|\{\{(?:%(user_aliases)s):([^/]*?)/%(sig)s\}\}'
+            ) % {'user_aliases': '|'.join(search),
+                 'sig': self.signature}
         self.re = re.compile(rex, re.IGNORECASE)
 
     def find(self, raw):
@@ -202,7 +201,7 @@ def addGroupAttribute(g, lang, group='bot', edits_only=False):
     users = getUsersGroup(lang, group, edits_only)
 
     if not users:
-        g.vs[group] = [None,]*len(g.vs)
+        g.vs[group] = [None, ] * len(g.vs)
         return
 
     for user in users:
@@ -222,15 +221,15 @@ def getUsersGroup(lang, group='bot', edits_only=False):
       confirmed, autoreviewer, researcher, abusefilter
     edits_only: returns only users that edited at least one time
     """
-    base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list=allusers'+
-           '&augroup=%s&aulimit=500&format=json') % (lang, group)
+    base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list=' + \
+                'allusers&augroup=%s&aulimit=500&format=json') % (lang, group)
 
     if edits_only:
         base_url += '&auwitheditsonly'
 
     start, list_ = None, []
     while True:
-        url = base_url +'&aufrom='+start if start is not None else base_url
+        url = base_url + '&aufrom=' + start if start is not None else base_url
         res = json.load(urlopen(url))
 
         try:
@@ -250,9 +249,9 @@ def getUsersGroup(lang, group='bot', edits_only=False):
     return list_
 
 def addBlockedAttribute(g, lang):
-    g.vs['blocked'] = [None,]*len(g.vs)
-    url = base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list='+
-                      'blocks&bklimit=500&format=json') % ( lang, )
+    g.vs['blocked'] = [None, ] * len(g.vs)
+    url = base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list=' + \
+                      'blocks&bklimit=500&format=json') % (lang, )
 
     start = None
     while True:
@@ -261,13 +260,13 @@ def addBlockedAttribute(g, lang):
         logging.info("BLOCKED USERS: url = %s", url)
         res = json.load(urlopen(url))
 
-        if not res.has_key('query') or not res['query']['blocks']:
+        if not "query" in res.keys() or not res['query']['blocks']:
             logging.info('No blocked users')
             return
 
         bk_list = []
         for block in res['query']['blocks']:
-            if not block.has_key('user'):
+            if not "user" in block.keys():
                 continue
             logging.info(block['user'].encode('utf-8'))
             try:
@@ -276,7 +275,7 @@ def addBlockedAttribute(g, lang):
                 pass
 
         bk_vs = g.vs.select(username_in=bk_list)
-        bk_vs['blocked'] = (True,)*len(bk_vs)
+        bk_vs['blocked'] = (True, ) * len(bk_vs)
 
         try:
             qc = res['query-continue']
@@ -290,7 +289,7 @@ def addBlockedAttribute(g, lang):
 def get_tags(src, tags='page,title,revision,text'):
     # find namespace (eg: http://www.mediawiki.org/xml/export-0.3/)
     try:
-        root = src.readline()+src.readline()
+        root = src.readline() + src.readline()
         ns = unicode(re.findall(r'xmlns="([^"]*)', root)[0])
 
         tag_prefix = u'{%s}' % (ns,)
@@ -388,10 +387,10 @@ def normalize_pagename(s):
 
 
 def count_renames(lang):
-    url = base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list='+\
-                      'logevents&letype=renameuser&lelimit=500&leprop='+ \
+    url = base_url = ('http://%s.wikipedia.org/w/api.php?action=query&list=' + \
+                      'logevents&letype=renameuser&lelimit=500&leprop=' + \
                       'title|type|user|timestamp|comment|details&format=json'
-                      ) % ( lang, )
+                      ) % (lang, )
     counter = 0
     start = None
     while True:
@@ -399,13 +398,13 @@ def count_renames(lang):
             url = '%s&lestart=%s' % (base_url, start)
         res = json.load(urlopen(url))
 
-        if not res.has_key('query') or not res['query']['logevents']:
+        if not "query" in res.keys() or not res['query']['logevents']:
             logging.info('No logs')
             return
 
         counter += len(res['query']['logevents'])
 
-        if res.has_key('query-continue'):
+        if 'query-continue' in res.keys():
             start = res['query-continue']['logevents']['lestart']
         else:
             break
@@ -415,7 +414,8 @@ def count_renames(lang):
 Message = namedtuple('Message', 'time welcome')
 
 try:
-    utp_archive_regex = re2_compile_with_fallback(r'(?:vecchi|archiv|old)', re.I)
+    utp_archive_regex = re2_compile_with_fallback(r'(?:vecchi|archiv|old)',
+                                                  re.I)
 except TypeError:
     ## pyre2 does not support flags
     utp_archive_regex = re2_compile_with_fallback(r'(?:vecchi|archiv|old)')
@@ -529,4 +529,3 @@ def _diff_text(prev_text, text, timeout=1):
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-
