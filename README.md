@@ -15,8 +15,20 @@ Like utpedits2graph.py, but counting signature on User Talk Pages.
 
 This script can be used on current dumps.
 
-### enrich.py
-Giving a pickled iGraph object, this script downloads useful information about the users (like if the user is a bot, a sysop, ..) from the wikipedia API and creates a new pickled iGraph object.
+### graph_enrich.py
+Giving a pickled iGraph object, this script downloads useful information about
+the users (like if the user is a bot, a sysop, ..) from the wikipedia API and
+creates a new pickled iGraph object.
+
+### graph_analysis.py
+Network analysis tool. Use ./graph_analysis --help to see available parameters
+Note: transitivity isn't available yet. don't use summary with --as-table.
+      Use --histogram, --gnuplot, --plot alone
+
+### graph_longitudinal_analysis.py
+Network longitudinal analysis. Possible analysis:
+   1. cumulative
+   2. time slices
 
 ### usercontributions.py
 Given a stub dump, this script counts contributions for every user on the whole wikipedia.
@@ -98,6 +110,14 @@ Data are stored in a database.
 Given a current dump, count words found on every UTP and return the results
 by group (the group which the user belongs).
 
+### countwords-groups-sender.py
+Note: currenly broken. don't use it
+Given a current dump, count words found on every UTP and return the results by
+the group which the sender of the msg belongs to. Group == role (sysop, bot, etc...) 
+
+### conttemplates.py
+Used to count how many templates are used in every User Page (not UTP!)
+
 ### pywc.py
 Script similar to TAWC/LIWC. Used to analise text in wikipedia revisions_page
 output. As it has been developed for wikipedia, it contains some functions to
@@ -112,7 +132,7 @@ This script extracts all the revisions of a list of pages.
 It's possible to specify which kind of page you want to analize
 (all, content only, talk only). Data are outputted in a csv file.
 
-### csv_maipulation.py
+### csv_manipulation.py
 Used to manage files exported by revisions_page.py (text cells can contain
 new lines so it is possible to manage them easily with head, tail, awk, ...)
 Using this script you can extract only specific pages or a little number of
