@@ -81,8 +81,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         if len(a_title) == 1 and self.get_articles:
             self._type = 'normal'
             self._title = a_title[0]
-        elif len(a_title) == 2 and a_title[0] == self.talkns and \
-                self.get_talks:
+        elif len(a_title) == 2 and a_title[0] == self.talkns and
+             self.get_talks:
             self._type = 'talk'
             self._title = a_title[1]
         else:
