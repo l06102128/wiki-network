@@ -48,8 +48,8 @@ class CurrentPageProcessor(PageProcessor):
 
         a_title = text.split('/')[0].split(':')
 
-        if len(a_title) > 1 and a_title[0] in self.user_talk_names \
-           and a_title[1]:
+        if len(a_title) > 1 and a_title[0].encode("utf8") in \
+           self.user_talk_names and a_title[1]:
             self.user = a_title[1]
         else:
             self._skip = True
