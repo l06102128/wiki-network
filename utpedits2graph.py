@@ -85,7 +85,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             kwargs['ecache'] = EdgeCache()
         super(HistoryPageProcessor, self).__init__(**kwargs)
 
-    def process_title(self, elem):  
+    def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date", "_receiver"))
         if self._skip_revision: return
 
@@ -123,7 +123,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._skip_revision = True
         else:
             self._time = revision_time
-            
+
         del revision_time
 
     def process_contributor(self, contributor):
@@ -152,14 +152,14 @@ class HistoryPageProcessor(mwlib.PageProcessor):
                     self._sender = contributor.find(self.tag['id']).text
                 except KeyError:
                     self._skip_revision = True
-                
+
     def process_revision(self, _):
         skip = self._skip_revision
         self._skip_revision = False
         welcome, self._welcome = self._welcome, False
-        
+
         if skip: return
-        
+
         assert self._sender is not None, "Sender still not defined"
         assert self._receiver is not None, "Receiver still not defined"
         self.ecache.add(self._receiver, {
@@ -175,8 +175,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
 
         self.count += 1
         if not self.count % 500:
-            print >>sys.stderr, self.count
-            
+            print >> sys.stderr, self.count
+
     def delattr(self, attrs):
         for attr in attrs:
             try:
@@ -192,7 +192,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         if not elem.text: return
         if self._re_welcome.search(elem.text):
             self._welcome = True
-            
+
     def get_network(self):
         with Timr('Flushing'):
             self.ecache.flush()
@@ -203,9 +203,9 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         logging.info('ARCHIVES: %d' % self.count_archive)
         logging.info('DELETED: %d' % self.counter_deleted)
 
-    
+
 def save_graph(g, lang, type_, date_):
-    
+
     counter = 0
     with Timr('Setting weight attribute on edges'):
         for e in g.es:
@@ -214,7 +214,7 @@ def save_graph(g, lang, type_, date_):
             counter += 1
             if not counter % 10000:
                 logging.debug(counter)
-        
+
     with Timr('Pickling'):
         g.write("%swiki-%s%s.pickle" % (lang, date_, type_), format="pickle")
     #g.write("%swiki-%s%s.graphmlz" % (lang, date_, type_), format="graphmlz")
@@ -238,7 +238,7 @@ def opt_parse():
     if len(args) != 1:
         p.error("Wrong number of arguments")
     if not os.path.exists(args[0]):
-        p.error("Dump file does not exist (%s)" % (xml,))
+        p.error("Dump file does not exist (%s)" % (args[0], ))
     return (opts, args)
 
 
@@ -248,7 +248,7 @@ def main():
                                 stream=sys.stderr,
                                 level=logging.DEBUG)
     logging.info('---------------------START---------------------')
-    
+
     opts, args = opt_parse()
     xml = args[0]
 
@@ -256,9 +256,9 @@ def main():
     lang, date_, type_ = mwlib.explode_dump_filename(xml)
 
     deflate, _lineno = find_open_for_this_file(xml)
-    
+
     welcome = defaultdict(str)
-    
+
     welcome.update({
         'it': r'Benvenut'
         ,'en': r'Welcome'
@@ -273,14 +273,14 @@ def main():
         tags='page,title,revision,timestamp,contributor,username,ip,comment')
 
     translations = mwlib.get_translations(src)
-    
+
     try:
         lang_user = unicode(translations['User'])
         lang_user_talk = unicode(translations['User talk'])
     except UnicodeDecodeError:
         lang_user = smart_str(translations['User'])
         lang_user_talk = smart_str(translations['User talk'])
-    
+
     assert lang_user, "User namespace not found"
     assert lang_user_talk, "User Talk namespace not found"
 
@@ -292,7 +292,7 @@ def main():
     processor.time_start = opts.start
     processor.time_end = opts.end
     processor.welcome_pattern = welcome[lang]
-    
+
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
 
