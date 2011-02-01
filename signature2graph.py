@@ -120,7 +120,10 @@ def main():
     assert lang_user, "User namespace not found"
     assert lang_user_talk, "User Talk namespace not found"
 
-    lang_user = unicode(lang_user)
+    try:
+        lang_user = unicode(lang_user)
+    except UnicodeDecodeError:
+        lang_user = str(lang_user)
     en_user = unicode(en_user)
 
     # open dump with an external process to use multiple cores
