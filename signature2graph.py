@@ -65,8 +65,12 @@ class CurrentPageProcessor(PageProcessor):
             return
 
         talks = self.sig_finder.find(text)
-
-        self.ecache.add(mwlib.normalize_pagename(self.user), talks)
+        try:
+            self.ecache.add(mwlib.normalize_pagename(self.user), talks)
+        # Checks if self.user is a valid pagename
+        except AttributeError:
+            self._skip = True
+            return
         self.count += 1
         if not self.count % 500:
             print self.count
