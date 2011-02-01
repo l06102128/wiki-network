@@ -225,7 +225,8 @@ def opt_parse():
 
     p = OptionParser(usage="usage: %prog [options] dumpfile",
                      option_class=SonetOption, description=
-                     'Count edits on User Talk Pages and create a graph from it. Save the graph as a pickled iGraph object.')
+                     'Count edits on User Talk Pages and create a graph from '
+                     'it. Save the graph as a pickled iGraph object.')
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
