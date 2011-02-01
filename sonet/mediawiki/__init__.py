@@ -383,7 +383,7 @@ def normalize_pagename(s):
     try:
         return (s[0].upper() + s[1:])
     except IndexError:
-        raise AttributeError
+        raise AttributeError("%s is not a valid pagename" % s)
 
 
 def count_renames(lang):
