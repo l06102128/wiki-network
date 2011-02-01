@@ -64,8 +64,8 @@ class CurrentPageProcessor(PageProcessor):
         if (mwlib.isHardRedirect(text) or mwlib.isSoftRedirect(text)):
             return
 
-        talks = self.sig_finder.find(text)
         try:
+            talks = self.sig_finder.find(text)
             self.ecache.add(mwlib.normalize_pagename(self.user), talks)
         # Checks if self.user is a valid pagename
         except AttributeError:
