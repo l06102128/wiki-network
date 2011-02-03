@@ -60,6 +60,9 @@ class HistoryPageProcessor(mwlib.PageProcessor):
     counter_deleted = 0
     _re_welcome = None
     __welcome_pattern = None
+    _username = None
+    _id = None
+    _ip = None
 
     @property
     def welcome_pattern(self):
@@ -123,35 +126,23 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._skip_revision = True
         else:
             self._time = revision_time
-
         del revision_time
+
+        # Used only because there are two id tags. We're intrested in the
+        # id child of contributor. As timestamp is before contributor is good
+        # to clear self._id, self._username, self._ip now.
+        self.delattr(("_id", "_username", "_ip"))
 
     def process_contributor(self, contributor):
         if self._skip_revision: return
 
         if contributor is None:
             self._skip_revision = True
-
-        sender_tag = contributor.find(self.tag['username'])
-        if sender_tag is None:
-            try:
-                self._sender = contributor.find(self.tag['ip']).text
-                if self._sender is None:
-                    self._skip_revision = True
-                    self.counter_deleted += 1
-            except AttributeError:
-                ## user deleted
-                self._skip_revision = True
-                self.counter_deleted += 1
-        else:
-            try:
-                self._sender = mwlib.normalize_pagename(sender_tag.text)
-            except AttributeError:
-                ## if username is defined but empty, look for id tag
-                try:
-                    self._sender = contributor.find(self.tag['id']).text
-                except KeyError:
-                    self._skip_revision = True
+        self._sender = self._username or self._id or self._ip
+        self.delattr(("_id", "_username", "_ip"))
+        if not self._sender:
+            self.counter_deleted += 1
+            self._skip_revision = True
 
     def process_revision(self, _):
         skip = self._skip_revision
@@ -167,12 +158,12 @@ class HistoryPageProcessor(mwlib.PageProcessor):
                            })
         self._sender = None
         self._time = None
+        self.delattr(("_id", "_username", "_ip"))
 
     def process_page(self, _):
         if self._skip:
             self._skip = False
             return
-
         self.count += 1
         if not self.count % 500:
             print >> sys.stderr, self.count
@@ -192,6 +183,21 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         if not elem.text: return
         if self._re_welcome.search(elem.text):
             self._welcome = True
+
+    def process_username(self, elem):
+        if self._skip_revision:
+            return
+        self._username = elem.text
+
+    def process_ip(self, elem):
+        if self._skip_revision:
+            return
+        self._ip = elem.text
+
+    def process_id(self, elem):
+        if self._skip_revision:
+            return
+        self._id = elem.text
 
     def get_network(self):
         with Timr('Flushing'):
@@ -271,7 +277,8 @@ def main():
         src = deflate(xml)
 
     tag = mwlib.get_tags(src,
-        tags='page,title,revision,timestamp,contributor,username,ip,comment')
+                         tags='page,title,revision,timestamp,contributor,'
+                              'username,ip,comment,id')
 
     translations = mwlib.get_translations(src)
 
