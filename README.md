@@ -15,7 +15,7 @@ Like utpedits2graph.py, but counting signature on User Talk Pages.
 
 This script can be used on current dumps.
 
-### enrich.py
+### graph_enrich.py
 Giving a pickled iGraph object, this script downloads useful information about the users (like if the user is a bot, a sysop, ..) from the wikipedia API and creates a new pickled iGraph object.
 
 ### usercontributions.py
