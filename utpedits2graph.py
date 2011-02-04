@@ -31,6 +31,7 @@ from sonet.timr import Timr
 
 from collections import defaultdict
 
+
 class HistoryPageProcessor(mwlib.PageProcessor):
     """
     HistoryPageProcessor extracts a graph from a meta-history or a
@@ -89,12 +90,13 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         super(HistoryPageProcessor, self).__init__(**kwargs)
 
     def process_title(self, elem):
-        self.delattr(("_counter", "_type", "_title", "_skip", "_date", "_receiver"))
-        if self._skip_revision: return
+        self.delattr(("_counter", "_type", "_title", "_skip",
+                      "_date", "_receiver"))
+        if self._skip_revision:
+            return
 
         title = elem.text
         a_title = title.split(':')
-
         if len(a_title) > 1 and smart_str(a_title[0]) in self.user_talk_names:
             self._receiver = mwlib.normalize_pagename(a_title[1])
         else:
@@ -111,7 +113,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             del title, a_title
 
     def process_timestamp(self, elem):
-        if self._skip_revision: return
+        if self._skip_revision:
+            return
 
         timestamp = elem.text
         year = int(timestamp[:4])
@@ -134,7 +137,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         self.delattr(("_id", "_username", "_ip"))
 
     def process_contributor(self, contributor):
-        if self._skip_revision: return
+        if self._skip_revision:
+            return
 
         if contributor is None:
             self._skip_revision = True
@@ -149,13 +153,13 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         self._skip_revision = False
         welcome, self._welcome = self._welcome, False
 
-        if skip: return
+        if skip:
+            return
 
         assert self._sender is not None, "Sender still not defined"
         assert self._receiver is not None, "Receiver still not defined"
         self.ecache.add(self._receiver, {
-            self._sender: [mwlib.Message(self._time, welcome),]
-                           })
+                        self._sender: [mwlib.Message(self._time, welcome), ]})
         self._sender = None
         self._time = None
         self.delattr(("_id", "_username", "_ip"))
@@ -176,11 +180,14 @@ class HistoryPageProcessor(mwlib.PageProcessor):
                 pass
 
     def process_comment(self, elem):
-        if self._skip_revision: return
-        if not self.__welcome_pattern: return
+        if self._skip_revision:
+            return
+        if not self.__welcome_pattern:
+            return
         assert self._welcome == False, 'processor._welcome is True!'
         #print elem.text.encode('utf-8')
-        if not elem.text: return
+        if not elem.text:
+            return
         if self._re_welcome.search(elem.text):
             self._welcome = True
 
@@ -205,9 +212,9 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         return self.ecache.get_network(edge_label='timestamp')
 
     def end(self):
-        logging.info('TOTAL UTP: %d' % self.count)
-        logging.info('ARCHIVES: %d' % self.count_archive)
-        logging.info('DELETED: %d' % self.counter_deleted)
+        logging.info('TOTAL UTP: %d', self.count)
+        logging.info('ARCHIVES: %d', self.count_archive)
+        logging.info('DELETED: %d', self.counter_deleted)
 
 
 def save_graph(g, lang, type_, date_):
@@ -225,14 +232,16 @@ def save_graph(g, lang, type_, date_):
         g.write("%swiki-%s%s.pickle" % (lang, date_, type_), format="pickle")
     #g.write("%swiki-%s%s.graphmlz" % (lang, date_, type_), format="graphmlz")
 
+
 def opt_parse():
     from optparse import OptionParser
     from sonet.lib import SonetOption
 
     p = OptionParser(usage="usage: %prog [options] dumpfile",
-                     option_class=SonetOption, description=
-                     'Count edits on User Talk Pages and create a graph from '
-                     'it. Save the graph as a pickled iGraph object.')
+                     option_class=SonetOption,
+                     description='Count edits on User Talk Pages and create '
+                                 'a graph from it. Save the graph as a pickled'
+                                 ' iGraph object.')
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
@@ -266,10 +275,8 @@ def main():
 
     welcome = defaultdict(str)
 
-    welcome.update({
-        'it': r'Benvenut'
-        ,'en': r'Welcome'
-    })
+    welcome.update({'it': r'Benvenut',
+                    'en': r'Welcome'})
 
     if _lineno:
         src = deflate(xml, 51)   # Read first 51 lines to extract namespaces
@@ -307,8 +314,8 @@ def main():
     with Timr('Getting network'):
         g = processor.get_network()
 
-    logging.info("Nodes: %d" % len(g.vs))
-    logging.info("Edges: %d" % len(g.es))
+    logging.info("Nodes: %d", len(g.vs))
+    logging.info("Edges: %d", len(g.es))
 
     with Timr('Saving graph'):
         save_graph(g, lang, type_, date_)

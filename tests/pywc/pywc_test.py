@@ -1,6 +1,8 @@
 import unittest
 from pywc import PyWC
 import re
+
+
 class TestPyWC(unittest.TestCase):
 
     def setUp(self):
