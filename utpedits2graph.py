@@ -259,10 +259,11 @@ def opt_parse():
 
 
 def main():
+    logging.basicConfig(stream=sys.stderr,
+                        level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
 
-    logging.basicConfig(#filename="graph_longiudinal_analysis.log",
-                                stream=sys.stderr,
-                                level=logging.DEBUG)
     logging.info('---------------------START---------------------')
 
     opts, args = opt_parse()
