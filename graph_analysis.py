@@ -72,14 +72,15 @@ def create_option_parser():
     op.add_option('-d', '--details', action="store_true", dest="details",
         help="Print details about this graph (# of vertexes and # of edges)")
     op.add_option('-e', '--degree', action="store_true", dest="degree",
-        help="Print the mean vertex-vertex distance of the graph")
+        help="Print mean, sd for indegrees and outdegree and the 5 max values")
     op.add_option('-r', '--density', action="store_true", dest="density",
         help="Print the density of the groups (requires --groups)")
     op.add_option('--reciprocity', action="store_true", dest="reciprocity",
         help="Print the reciprocity of the groups  (requires --groups)")
     op.add_option('-t', '--transitivity', action="store_true",
                   dest="transitivity")
-    op.add_option('-i', '--distance', action="store_true", dest="distance")
+    op.add_option('-i', '--distance', action="store_true", dest="distance",
+        help="Print the mean vertex-vertex distance of the graph")
     op.add_option('-f', '--efficiency', action="store_true", dest="efficiency")
     op.add_option('-s', '--summary', action="store_true", dest="summary")
     op.add_option('-c', '--centrality', action="store", dest="centrality",
