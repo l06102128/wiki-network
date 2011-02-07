@@ -132,6 +132,7 @@ def main():
     else:
         g.defineClass('all', {})
 
+    print " * filename: %s" % (fn,)
     print " * lang: %s" % (lang,)
     print " * date: %s" % (date,)
 
