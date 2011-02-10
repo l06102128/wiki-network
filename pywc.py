@@ -16,7 +16,7 @@
 ########################################################################
 
 import csv
-csv.field_size_limit(10000000)
+csv.field_size_limit(100000000)
 import sys
 import logging
 try:
