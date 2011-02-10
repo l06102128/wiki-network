@@ -170,7 +170,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             return
         self.count += 1
         if not self.count % 500:
-            print >> sys.stderr, self.count
+            logging.info("Counter: %d", self.count)
 
     def delattr(self, attrs):
         for attr in attrs:
@@ -242,6 +242,8 @@ def opt_parse():
                      description='Count edits on User Talk Pages and create '
                                  'a graph from it. Save the graph as a pickled'
                                  ' iGraph object.')
+    p.add_option('-v', action="store_true", dest="verbose", default=False,
+                             help="Verbose output (like timings)")
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
@@ -259,10 +261,11 @@ def opt_parse():
 
 
 def main():
-    logging.basicConfig(stream=sys.stderr,
-                        level=logging.DEBUG,
-                        format='%(asctime)s %(levelname)s %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S')
+    if opts.verbose:
+        logging.basicConfig(stream=sys.stderr,
+                            level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
 
     logging.info('---------------------START---------------------')
 

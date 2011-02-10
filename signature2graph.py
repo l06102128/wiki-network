@@ -73,7 +73,7 @@ class CurrentPageProcessor(PageProcessor):
             return
         self.count += 1
         if not self.count % 500:
-            print self.count
+            logging.info("Counter: %d", self.count)
 
     def process_page(self, _):
         """
@@ -98,7 +98,9 @@ def main():
         import sys
         import logging
         logging.basicConfig(stream=sys.stderr,
-                            level=logging.DEBUG)
+                            level=logging.DEBUG,
+                            format='%(asctime)s %(levelname)s %(message)s',
+                            datefmt='%Y-%m-%d %H:%M:%S')
 
     try:
         xml = files[0]
@@ -145,8 +147,8 @@ def main():
     with Timr('Create network'):
         g = processor.ecache.get_network()
 
-    print "Len:", len(g.vs)
-    print "Edges:", len(g.es)
+    logging.info("Len:", len(g.vs))
+    logging.info("Edges:", len(g.es))
 
     g.write("%swiki-%s%s.pickle" % (lang, date, type_), format="pickle")
 
