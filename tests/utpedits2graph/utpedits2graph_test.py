@@ -1,4 +1,4 @@
-from utpedits2graph import HistoryPageProcessor
+from utpedits2graph import HistoryPageProcessor, save_graph
 import sonet.mediawiki as mwlib
 from sonet.lib import find_open_for_this_file
 from collections import defaultdict
@@ -10,7 +10,7 @@ class TestUTPEdits(unittest.TestCase):
     def setUp(self):
         xml = "tests/utpedits2graph/" + \
               "vecwiki-20100307-stub-meta-history-TEST.xml.bz2"
-        lang, date_, type_ = mwlib.explode_dump_filename(xml)
+        self.lang, self.date_, self.type_ = mwlib.explode_dump_filename(xml)
 
         deflate, _lineno = find_open_for_this_file(xml)
         welcome = defaultdict(str)
@@ -35,16 +35,19 @@ class TestUTPEdits(unittest.TestCase):
         src = deflate(xml)
         self.processor = HistoryPageProcessor(tag=tag,
                          user_talk_names=(lang_user_talk, u"User talk"))
-        self.processor.welcome_pattern = welcome[lang]
+        self.processor.welcome_pattern = welcome[self.lang]
         self.processor.start(src)
         self.g = self.processor.get_network()
 
     def test_graph(self):
-        self.assertEquals(len(self.g.vs), 63)
-        self.assertEquals(len(self.g.es), 67)
+        self.assertEquals(len(self.g.vs), 7)  # Nodes
+        self.assertEquals(len(self.g.es), 9)  # Edges
         self.assertEquals(self.processor.count, 4)
         self.assertEquals(self.processor.count_archive, 0)
         self.assertEquals(self.processor.counter_deleted, 0)
+        # Self-loop
+        self.assertEquals(1, len([edge for edge in self.g.es \
+                                  if edge.target == edge.source]))
 
 
 if __name__ == "__main__":
