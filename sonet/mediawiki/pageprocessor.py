@@ -11,6 +11,7 @@ class PageProcessor(object):
     user_talk_names = None
     search = None
     lang = None
+    _skip = False
 
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
@@ -29,13 +30,15 @@ class PageProcessor(object):
         tag_page = tag['page']
 
         ## FIND PROCESS METHODS
-        ## power of introspection: methods with names starting with "process_" (such as
-        ## "process_title") are made available and get automatically called when the
-        ## equivalent
-        for member_name, type_ in inspect.getmembers(self):
-            if not member_name.startswith('process_'): continue
+        ## power of introspection: methods with names starting with "process_"
+        ## (such as "process_title") are made available and get automatically
+        ## called when the equivalent
+        for member_name, _ in inspect.getmembers(self):
+            if not member_name.startswith('process_'):
+                continue
             member = self.__getattribute__(member_name)
-            if not inspect.ismethod(member): continue
+            if not inspect.ismethod(member):
+                continue
             dfunc[tag[member_name[8:]]] = member
 
         ## iterate over tags. skip if not in dfunc.
@@ -100,6 +103,9 @@ class HistoryPageProcessor(PageProcessor):
                 delattr(self, attr)
             except AttributeError:
                 pass
+
+    def save(self):
+        raise NotImplementedError("save() method has not been implemented")
 
     def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date"))

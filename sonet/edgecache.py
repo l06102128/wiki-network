@@ -58,13 +58,13 @@ class EdgeCache:
         """
 
         counter = 0
-        logging.info('LENGTH OF TEMP EDGES: %d' % len(self.temp_edges))
+        logging.info('LENGTH OF TEMP EDGES: %d', len(self.temp_edges))
 
         ## destructively iterate over cached edges dict
         while True:
             try:
                 recipient, talk = self.temp_edges.popitem()
-                
+
                 # find node with username recipient in self nodes
                 # If not present add it; we give him the id rec_id
                 rec_id = self.nodes.setdefault(recipient, len(self.nodes))
@@ -77,22 +77,23 @@ class EdgeCache:
 
                 counter += 1
                 if not counter % 5000:
-                    
+
                     ## Shrinkage rate: addd/remove a foo element to the dict
                     ## in order to force its resize
                     self.temp_edges[None] = None
                     del self.temp_edges[None]
-                    
+
                     logging.info(counter)
-                
+
             except KeyError:
                 if not len(self.temp_edges):
-                    logging.info('FLUSHED EDGES: %d' % counter)
+                    logging.info('FLUSHED EDGES: %d', counter)
                 else:
-                    logging.error('NOT ALL THE EDGES HAVE BEEN FLUSHED: %d - %d REMAINING'
-                                  % (counter,len(self.temp_edges),))
+                    logging.error('NOT ALL THE EDGES HAVE BEEN FLUSHED: %d' + \
+                                  ' - %d REMAINING', counter,
+                                  len(self.temp_edges))
                 break
-    
+
         del self.temp_edges
 
     def get_network(self, vertex_label='username', edge_label='weight'):

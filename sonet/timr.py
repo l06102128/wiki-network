@@ -1,4 +1,3 @@
-import sys
 from time import time
 import logging
 
@@ -18,7 +17,7 @@ class Timr(object):
 
     def start(self, name=None):
         if name:
-            logging.info("START %s" % name)
+            logging.info("START %s", name)
             self.counters[name] = time()
         else:
             logging.info("START TIMER")
@@ -26,7 +25,7 @@ class Timr(object):
 
     def stop(self, name=None):
         if name:
-            logging.info("STOP %s: %6f" % (
-                name,  time() - self.counters[name]))
+            logging.info("STOP %s: %6f",
+                         name,  time() - self.counters[name])
         else:
-            logging.info("STOP TIMER: %6f" % (time() - self.main_counter, ))
+            logging.info("STOP TIMER: %6f", time() - self.main_counter)

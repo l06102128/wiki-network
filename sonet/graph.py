@@ -120,7 +120,7 @@ class Graph(object):
             usernames = vs[label]
 
             accumulate = ["",]
-            print >>f, ','.join(['',]+ usernames +['TOTAL',])
+            print >> f, ','.join(['',]+ usernames +['TOTAL',])
 
             for i in range(len(vs)):
                 accumulate = [usernames[i],]
@@ -128,7 +128,7 @@ class Graph(object):
                 msgs = matrix[i]
                 accumulate += [str(e) for e in msgs]
                 accumulate.append(str(sum(msgs)))
-                print >>f, ','.join(accumulate)
+                print >> f, ','.join(accumulate)
 
             # write TOTAL line
             accumulate = ['TOTAL',]
@@ -137,7 +137,7 @@ class Graph(object):
                     range(len(vs))]
             accumulate += [str(e) for e in msgs]
             accumulate.append(str(sum(msgs)))
-            print >>f, ','.join(accumulate)
+            print >> f, ','.join(accumulate)
 
 
     def writeReciprocityMatrix(self, label, fn=None):
@@ -178,7 +178,7 @@ class Graph(object):
         rmatrix_data = [N*[0] for i in xrange(N)]
         for i in xrange(N):
             for j in xrange(i+1):
-                if matrix[(i,j)] and matrix[(j,i)]:
+                if matrix[(i, j)] and matrix[(j, i)]:
                     rmatrix_data[i][j] = rmatrix_data[j][i] = 1
 
         if fn is None:
@@ -189,7 +189,7 @@ class Graph(object):
 
         labels = vs[label]
 
-        print >>f, ','.join(['',]+ labels +['TOTAL',])
+        print >> f, ','.join(['',]+ labels +['TOTAL',])
 
         rmatrix = ig.datatypes.Matrix(rmatrix_data)
         for i, label in enumerate(labels):
@@ -198,7 +198,7 @@ class Graph(object):
             msgs = rmatrix[i]
             accumulate += [str(e) for e in msgs]
             accumulate.append(str(sum(msgs)))
-            print >>f, ','.join(accumulate)
+            print >> f, ','.join(accumulate)
 
         # write TOTAL line
         accumulate = ['TOTAL',]
@@ -207,7 +207,7 @@ class Graph(object):
                 range(len(vs))]
         accumulate += [str(e) for e in msgs]
         accumulate.append(str(sum(msgs)))
-        print >>f, ','.join(accumulate)
+        print >> f, ','.join(accumulate)
 
     def getTopIndegree(self, lb=15, label='username'):
         self.getTopDegree(type=ig.IN, lb=lb, label=label)
