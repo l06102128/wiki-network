@@ -141,6 +141,8 @@ def main():
 
             nodes_with_outdegree = len(g.g.vs.select(_outdegree_ge=1))
             nodes_with_indegree = len(g.g.vs.select(_indegree_ge=1))
+            self_loop_edges = len([edge for edge in g.g.es \
+                                   if edge.target == edge.source])
 
             print " * nodes with out edges number: %d (%6f%%)" % (
                 nodes_with_outdegree, 100.*nodes_with_outdegree/vn)
@@ -148,8 +150,8 @@ def main():
                 nodes_with_indegree, 100.*nodes_with_indegree/vn)
             print " * max weights on edges : %s" % top(g.g.es['weight'])
 
+            print " * self-loop edges: %d" % self_loop_edges
             #print " * diameter : %6f" % g.g.diameter(weights='length')
-
             #print " * average weight : %6f" % numpy.average(g.g.es['weight'])
 
 
