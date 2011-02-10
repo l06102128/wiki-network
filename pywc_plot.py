@@ -111,6 +111,7 @@ def main():
 
     # content contains all the csv file
     content = [row for i, row in enumerate(csv_reader)]
+
     # CSV header, only of interesting columns
     header = [x for x in _gen_data(content[0], opts.id_col,
                                    ignorecols, onlycols)]
