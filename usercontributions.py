@@ -23,7 +23,6 @@ except ImportError:
     logging.warn("pyre2 not available. It's gonna be a long job")
     re2_compile_with_fallback = re.compile
 import time
-#import guppy
 from array import array
 from datetime import datetime
 import logging
@@ -462,8 +461,4 @@ def main():
 
 
 if __name__ == "__main__":
-    #import cProfile as profile
-    #profile.run('main()', 'mainprof')
     main()
-    #h = guppy.hpy()
-    #print h.heap()

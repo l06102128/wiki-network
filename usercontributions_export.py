@@ -132,7 +132,7 @@ def main():
 
     xml, out, threshold = args.dump, args.out, args.threshold
 
-    lang, date_, type_ = mwlib.explode_dump_filename(xml)
+    lang, date_, _ = mwlib.explode_dump_filename(xml)
     deflate, _lineno = find_open_for_this_file(xml)
 
     date_ = yyyymmdd_to_datetime(date_, 1)

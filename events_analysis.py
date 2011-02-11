@@ -20,7 +20,7 @@ from sqlalchemy import select, func
 from base64 import b64decode
 from zlib import decompress
 from wbin import deserialize
-import sys, csv
+import csv
 from os import path
 
 from django.utils.encoding import smart_str
@@ -29,7 +29,7 @@ from sonet.models import get_events_table
 from sonet import lib
 
 ## GLOBAL VARS
-initial_date = date(2000,1,1)
+initial_date = date(2000, 1, 1)
 
 
 def page_iter(lang = 'en', paginate=10000000, desired=None):
@@ -49,7 +49,7 @@ def page_iter(lang = 'en', paginate=10000000, desired=None):
         count_query = count_query.where(events.c.title.in_(desired))
 
     count = conn.execute(count_query).fetchall()[0][0]
-    
+
     print 'PAGES:', count
 
     for offset in xrange(0, count, paginate):
@@ -59,11 +59,11 @@ def page_iter(lang = 'en', paginate=10000000, desired=None):
                    deserialize(decompress(b64decode(row[1]))),
                    row[2],row[3],row[4],row[5])
 
-            
+
 def get_days_since(start_date, end_date, anniversary_date, td_list):
     """
     Returns the number of days passed between two dates. If the considered date
-    is an anniversary, count the number of days in the range around the 
+    is an anniversary, count the number of days in the range around the
     anniversary for each year
 
     >>> td = [timedelta(i) for i in range(-10,11)]
@@ -99,23 +99,23 @@ def get_days_since(start_date, end_date, anniversary_date, td_list):
         return 0
     if not anniversary_date:
         return (end_date - start_date).days + 1
-    
+
     counter = 0
-    
+
     for year in range(start_date.year, end_date.year + 1):
         try:
-            ad = date(year, anniversary_date.month,anniversary_date.day)
+            ad = date(year, anniversary_date.month, anniversary_date.day)
         except ValueError:
-            ad = date(year, anniversary_date.month,anniversary_date.day - 1)
-            
+            ad = date(year, anniversary_date.month, anniversary_date.day - 1)
+
         ## TODO: introduce dateutil.rrule.between ?
         if td_list:
-            counter += len([1 for d in (ad + td 
-                        for td in td_list) 
+            counter += len([1 for d in (ad + td
+                        for td in td_list)
                         if (d >= start_date and d <= end_date)])
         else:
             counter += int(ad >= start_date and ad <= end_date)
-        
+
     return counter
 
 def is_near_anniversary(creation, revision, range_):
@@ -176,7 +176,7 @@ def get_first_revision(start_date, data):
         return start_date + timedelta(min(data))
     except TypeError:
         return
-    
+
 def print_data_file(fn, dict_, s_date, e_date):
     """
     Given a filename and a dictionary of day => revisions
@@ -184,10 +184,10 @@ def print_data_file(fn, dict_, s_date, e_date):
     """
     s_days = (s_date - initial_date).days
     e_days = (e_date - initial_date).days
-    
+
     with open(fn, 'w') as f:
         wrt = csv.writer(f)
-        wrt.writerow(['date','total_edits','bot_edits','anon_edits'])
+        wrt.writerow(['date', 'total_edits', 'bot_edits', 'anon_edits'])
         for d in range(s_days, e_days + 1):
             try:
                 t = dict_[d]
@@ -208,11 +208,11 @@ class EventsProcessor(HistoryPageProcessor):
     dump_date = None
     groups = None
     lang = None
-    keys_ = ['article','type_of_page','desired','total_edits',
-             'unique_editors','anniversary_edits','n_of_anniversaries',
-             'anniversary_days','anniversary_edits/total_edits',
-             'non_anniversary_edits/total_edits','event_date',
-             'first_edit_date','first_edit_date-event_date_in_days']
+    keys_ = ['article', 'type_of_page', 'desired', 'total_edits',
+             'unique_editors', 'anniversary_edits', 'n_of_anniversaries',
+             'anniversary_days', 'anniversary_edits/total_edits',
+             'non_anniversary_edits/total_edits', 'event_date',
+             'first_edit_date', 'first_edit_date-event_date_in_days']
     output_dir = None
     pages = []
     range_ = None
@@ -230,72 +230,73 @@ class EventsProcessor(HistoryPageProcessor):
     __unique_editors = 0
 
     def __init__(self, **kwargs):
-        
-        from subprocess import Popen, PIPE        
-        
+
+        from subprocess import Popen, PIPE
+
         self.lang = kwargs['lang']
         self.range_ = kwargs['range_']
         self.skipped_days = kwargs['skip']
         self.dump_date = kwargs['dump_date']
         self.desired_only = kwargs['desired']
         self.groups = kwargs['groups']
-                
+
         ## list of time delta, used in get_days_since
         ## used together with anniversary day in order to find
         ## days in anniversary's range
         self.td_list = [timedelta(i) for i in
                         range(-self.range_,self.range_+1)]
-        
+
         if not lib.find_executable('7z'):
             raise Exception, 'Cannot find 7zip executable (7z)'
-        
+
         fn = kwargs['output_file'] + '.bz2'
-        
+
         if path.isfile(fn):
             raise Exception, 'Delete file ' + fn + ' before proceeding'
-        
+
         zip_process = Popen(['7z', 'a', '-tbzip2', '-mx=9', fn, '-si'],
                             stdin=PIPE, stderr=None)
-                
-        self.csv_writer = csv.DictWriter(zip_process.stdin, 
-                                   fieldnames = self.keys_, delimiter=',', 
+
+        self.csv_writer = csv.DictWriter(zip_process.stdin,
+                                   fieldnames = self.keys_, delimiter=',',
                                    quotechar='"', quoting=csv.QUOTE_ALL)
-        
+
         self.csv_writer.writeheader()
-        
+
         ## Outup directory for data files (only for desired pages)
         self.output_dir = fn[0:fn.rfind('/')] + '/%s_data_files/' % self.lang
         ## check if the directory exists. if not create it
         lib.ensure_dir(self.output_dir)
-                        
+
     def set_desired(self, fn):
         ## save desired pages list
         for r in csv.reader(open(fn, 'rb')):
             page = r[0].decode('latin-1').replace('_',' ')
-            if page[0] == '#': continue
-            
+            if page[0] == '#':
+                continue
+
             try:
                 self.desired_pages[page] = \
                     date(int(r[1][:4]),int(r[1][5:7]),int(r[1][8:10]))
             except:
                 self.desired_pages[page] = None
-    
+
     def get_start_date(self):
         '''
         Returns the date to be considered as start date for the analyzed page
         considering skipped days
         '''
         sd = timedelta(self.skipped_days)
-        
+
         if self.__first_edit_date == self.__event_date:
             s_date = self.__event_date + sd
-            
+
         elif self.__event_date + sd > self.__first_edit_date:
             s_date = self.__event_date + sd
-            
+
         else:
             s_date = self.__first_edit_date
-        
+
         return s_date
 
     def get_days_since(self):
@@ -305,9 +306,9 @@ class EventsProcessor(HistoryPageProcessor):
         '''
         s_date = self.get_start_date()
         return get_days_since(start_date=s_date, end_date=self.dump_date,
-                                  anniversary_date=self.__event_date, 
+                                  anniversary_date=self.__event_date,
                                   td_list=self.td_list)
-    
+
     def get_n_anniversaries(self):
         '''
         returns number of anniversaries from the initial date
@@ -315,23 +316,24 @@ class EventsProcessor(HistoryPageProcessor):
         '''
         s_date = self.get_start_date()
         return get_days_since(start_date=s_date, end_date=self.dump_date,
-                                  anniversary_date=self.__event_date, 
+                                  anniversary_date=self.__event_date,
                                   td_list=None)
 
     def process(self, threshold=1.):
         from random import random
-                       
+
         des = self.desired_pages.keys() if self.desired_only else None
-        
-        for title,data,talk,te,be,ae in page_iter(lang=self.lang,desired=des):
+
+        for title, data, talk, te, be, ae in \
+            page_iter(lang=self.lang,desired=des):
             ## check whether the page is an archive or not
             ## if it is a link, skip it!
             if is_archive(title):
                 continue
-            
+
             ## editors who are neither bots nor anonymous
             oe = te - be - ae
-            
+
             ## page's attributes
             self.__title = title
             self.__data = data
@@ -344,7 +346,7 @@ class EventsProcessor(HistoryPageProcessor):
                 (be if 'bots' not in self.groups else 0) +
                 (ae if 'anonymous' not in self.groups else 0)
             )
-            
+
             if self.__desired and self.__title not in self.count_desired:
                 print "PROCESSING DESIRED PAGE:", self.__title
                 self.count_desired.append(self.__title)
@@ -357,25 +359,25 @@ class EventsProcessor(HistoryPageProcessor):
                     self.__skip = False
             else:
                 self.__skip = False
-                
+
             ## process page
-            if not self.__skip: 
+            if not self.__skip:
                 self.process_page()
-        
+
         self.flush()
 
-    def process_page(self, elem):
+    def process_page(self, _):
         """
         process a page counting all the revisions made and
         calculating some statistics as number of days since
         creation, edits in anniversary's range, etc.
         """
-        
+
         ## page's (and last page as well) attributes
         title = self.__title
         talk = self.__type_of_page
         groups = self.groups
-        
+
         ## creation date
         self.__first_edit_date = get_first_revision(initial_date,
                                                  self.__data)
@@ -386,14 +388,15 @@ class EventsProcessor(HistoryPageProcessor):
                 self.__event_date = self.__first_edit_date
         else:
             self.__event_date = self.__first_edit_date
-           
-        ## if it is a desired page then print out data 
+
+        ## if it is a desired page then print out data
         ## about its daily revisions
         if self.__desired:
-            fn = self.output_dir + '%s%s.csv' % ('Talk:' if talk else '',title,)
+            fn = self.output_dir + '%s%s.csv' % ('Talk:' if talk else '',
+                                                 title,)
             print_data_file(fn, self.__data, self.__first_edit_date,
                             self.dump_date)
-            
+
         ## if the page has been created less than one year ago, skip
         ## TODO: 365 - range??
         if (self.dump_date - self.__first_edit_date).days < 365:
@@ -415,24 +418,24 @@ class EventsProcessor(HistoryPageProcessor):
                 ## skip edits made by not-to-be-analyzed groups
                 anniversary += (
                     (other_edits if 'total' not in groups else 0) +
-                    (bot_edits if 'bots' not in groups else 0) +    
+                    (bot_edits if 'bots' not in groups else 0) +
                     (anon_edits if 'anonymous' not in groups else 0)
                 )
             ## total edits
             ## skip edits made by not-to-be-analyzed groups
             total += (
                 (other_edits if 'total' not in groups else 0) +
-                (bot_edits if 'bots' not in groups else 0) + 
+                (bot_edits if 'bots' not in groups else 0) +
                 (anon_edits if 'anonymous' not in groups else 0)
             )
-                
+
         try:
             ann_total_edits = anniversary / total
             not_ann_total_edits = (total - anniversary) / total
         except ZeroDivisionError:
             ann_total_edits = 0.
             not_ann_total_edits = 0.
-                    
+
         dict_ = {
             'article': smart_str(self.__title),
             'type_of_page': int(not talk),
@@ -446,7 +449,7 @@ class EventsProcessor(HistoryPageProcessor):
             'non_anniversary_edits/total_edits': not_ann_total_edits,
             'event_date': self.__event_date,
             'first_edit_date': self.__first_edit_date,
-            'first_edit_date-event_date_in_days': (self.__first_edit_date - 
+            'first_edit_date-event_date_in_days': (self.__first_edit_date -
                                                    self.__event_date).days
         }
 
@@ -455,7 +458,7 @@ class EventsProcessor(HistoryPageProcessor):
         self.count_revisions += total
 
         if not self.count_pages % 50000:
-            self.flush()       
+            self.flush()
 
     def flush(self):
         '''
@@ -464,20 +467,20 @@ class EventsProcessor(HistoryPageProcessor):
         '''
         print 'PAGES:', self.count_pages, 'REVS:', self.count_revisions, \
             'DESIRED:', len(self.count_desired)
-        
+
         self.csv_writer.writerows(self.pages)
-                   
+
         self.pages = []
         return
 
-    
+
 def create_option_parser():
-    from optparse import OptionParser, OptionGroup
+    from optparse import OptionParser
     from sonet.lib import SonetOption
 
-    op = OptionParser('%prog [options] file dump-date output-file', 
+    op = OptionParser('%prog [options] file dump-date output-file',
                       option_class=SonetOption)
-    
+
     op.add_option('-l', '--lang', action="store", dest="lang",
                  help="Wikipedia language (en, it, vec, ...)", default="en")
     op.add_option('-r', '--range', action="store", dest="range_",
@@ -487,13 +490,13 @@ def create_option_parser():
                  help="number of days to be skipped", default=180, type="int")
     op.add_option('-d', '--desired-only', action="store_true", dest='desired',
                  default=False, help='analysis only of desired pages')
-    op.add_option('-g','--groups',action="store",dest='groups',default='', 
+    op.add_option('-g', '--groups', action="store", dest='groups', default='',
                  help='comma separated list of not-to-be-analyzed groups \
                  (total|bots|anonymous)')
     op.add_option('-R', '--ratio', action="store", dest="ratio",
                  help="percentage of pages to be analyzed",
                  default=1., type="float")
-    
+
     return op
 
 def main():
@@ -508,14 +511,14 @@ def main():
 
     ## creating dump date object
     dump = lib.yyyymmdd_to_datetime(dump_date).date()
-    
+
     ## list of not-to-be-analyzed groups
     groups = [g for g in opts.groups.split(',') if g]
-    
+
     ## creating processor
-    processor = EventsProcessor(lang=opts.lang, range_=opts.range_, 
-                                skip=opts.skip, dump_date=dump, groups=groups, 
-                                desired=opts.desired, output_file=files[2])
+    processor = EventsProcessor(lang=opts.lang, range_=opts.range_,
+                                skip=opts.skip, dump_date=dump, groups=groups,
+                                desired=opts.desired, output_file=out_file)
 
     ## set desired pages
     processor.set_desired(desired_pages_fn)
