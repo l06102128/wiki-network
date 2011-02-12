@@ -151,9 +151,9 @@ def main():
             axis.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d'))
             axis.set_xlim(matplotlib.dates.date2num(first_time),
                           matplotlib.dates.date2num(last_time))
-            if last_time - first_time < timedelta(days=60):
+            if last_time - first_time < timedelta(days=30):
                 axis.xaxis.set_minor_locator(md.DayLocator(interval=1))
-                axis.xaxis.set_major_locator(md.DayLocator(interval=5))
+                axis.xaxis.set_major_locator(md.DayLocator(interval=1))
             else:
                 axis.xaxis.set_minor_locator(md.MonthLocator(interval=1))
                 #auto_loc = md.AutoDateLocator(minticks=8, maxticks=12, interval_multiples=True)
