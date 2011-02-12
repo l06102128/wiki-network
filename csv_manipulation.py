@@ -30,6 +30,8 @@ def main():
                  help="Get info about CSV file")
     p.add_option('-S', '--start-line', action="store", dest="start_line",
                  type="int", help="Skip lines before START_LINE")
+    p.add_option('-h', '--header', action="store_true", dest="header",
+                 help="Output header")
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
@@ -65,6 +67,9 @@ def main():
     i = 0
     for k, line in enumerate(csv_reader):
         if k < opts.start_line:
+            continue
+        if opts.header and k == 0:
+            csv_writer.writerow(line)
             continue
         if opts.lines is not None and i >= opts.lines:
             break
