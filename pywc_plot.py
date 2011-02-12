@@ -130,6 +130,11 @@ def main():
         timestamps.append(dt.strptime(line[opts.id_col],
                           "%Y-%m-%dT%H:%M:%SZ"))
 
+    first_time = dt.strptime(content[1][0], "%Y-%m-%dT%H:%M:%SZ")
+    last_time = dt.strptime(content[-1][0], "%Y-%m-%dT%H:%M:%SZ")
+
+    del content
+
     mat = np.array(mat, dtype=np.float).transpose()
     logging.info("Input file read. Ready to plot")
     pdf_pag = PdfPages(files[1])
@@ -138,12 +143,21 @@ def main():
         for i, series in enumerate(mat):
             logging.info("Plotting page %d", i+1)
             plt.clf()
-            plt.subplots_adjust(bottom=0.2)
-            plt.xticks(rotation=25)
+            plt.subplots_adjust(bottom=0.25)
+            plt.xticks(rotation=90)
+            fig = plt.gcf()
+            fig.set_size_inches(11.7, 8.3)
             axis = plt.gca()
-            xfmt = md.DateFormatter('%Y-%m-%d')
-            axis.xaxis.set_major_formatter(xfmt)
-            #axis.yaxis.set_data_interval(0.0001, None, False)
+            axis.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d'))
+            axis.set_xlim(matplotlib.dates.date2num(first_time),
+                          matplotlib.dates.date2num(last_time))
+            axis.xaxis.set_minor_locator(md.MonthLocator(interval=1))
+            #auto_loc = md.AutoDateLocator(minticks=8, maxticks=12, interval_multiples=True)
+            #auto_loc.intervald[md.MONTHLY] = [6]
+            rule = md.rrulewrapper(md.MONTHLY, interval=4)
+            auto_loc = md.RRuleLocator(rule)
+            axis.xaxis.set_major_locator(auto_loc)
+            axis.tick_params(labelsize='x-small')
             plt.xlabel("Revisions Timestamp")
 
             # Don't plot zeros and skip zero revisions!
@@ -163,7 +177,7 @@ def main():
                 plt.ylabel("%")
 
             if time and ser:
-                plt.plot(matplotlib.dates.date2num(time), ser, "-o")
+                plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.title(header[i])
                 pdf_pag.savefig()
         pdf_pag.close()

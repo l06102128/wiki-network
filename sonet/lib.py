@@ -24,7 +24,6 @@ def yyyymmdd_to_datetime(yyyymmdd, td = None):
 
     return d
 
-
 def yyyymmdd_check(_, opt, value):
     from optparse import OptionValueError
 
