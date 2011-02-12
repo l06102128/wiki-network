@@ -153,13 +153,14 @@ def main():
                           matplotlib.dates.date2num(last_time))
             if last_time - first_time < timedelta(days=60):
                 axis.xaxis.set_minor_locator(md.DayLocator(interval=1))
+                axis.xaxis.set_major_locator(md.DayLocator(interval=5))
             else:
                 axis.xaxis.set_minor_locator(md.MonthLocator(interval=1))
-            #auto_loc = md.AutoDateLocator(minticks=8, maxticks=12, interval_multiples=True)
-            #auto_loc.intervald[md.MONTHLY] = [6]
-            rule = md.rrulewrapper(md.MONTHLY, interval=4)
-            auto_loc = md.RRuleLocator(rule)
-            axis.xaxis.set_major_locator(auto_loc)
+                #auto_loc = md.AutoDateLocator(minticks=8, maxticks=12, interval_multiples=True)
+                #auto_loc.intervald[md.MONTHLY] = [6]
+                rule = md.rrulewrapper(md.MONTHLY, interval=4)
+                auto_loc = md.RRuleLocator(rule)
+                axis.xaxis.set_major_locator(auto_loc)
             axis.tick_params(labelsize='x-small')
             plt.xlabel("Revisions Timestamp")
 
