@@ -30,7 +30,7 @@ def main():
                  help="Get info about CSV file")
     p.add_option('-S', '--start-line', action="store", dest="start_line",
                  type="int", help="Skip lines before START_LINE")
-    p.add_option('-h', '--header', action="store_true", dest="header",
+    p.add_option('-H', '--header', action="store_true", dest="header",
                  help="Output header")
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
