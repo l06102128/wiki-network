@@ -18,7 +18,7 @@ import os
 import sys
 import re
 import logging
-
+import gc
 
 ## UTILS
 from django.utils.encoding import smart_str
@@ -91,7 +91,8 @@ class HistoryPageProcessor(mwlib.PageProcessor):
 
     def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip",
-                      "_date", "_receiver"))
+                      "_date", "_receiver", "_time", "_id", "_username",
+                      "_ip"))
         if self._skip_revision:
             return
 
@@ -129,7 +130,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
             self._skip_revision = True
         else:
             self._time = revision_time
-        del revision_time
+        del revision_time, timestamp, year, month, day, hour, minutes, seconds
 
         # Used only because there are two id tags. We're intrested in the
         # id child of contributor. As timestamp is before contributor is good
@@ -171,6 +172,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         self.count += 1
         if not self.count % 500:
             logging.info("Counter: %d", self.count)
+            gc.collect()
 
     def delattr(self, attrs):
         for attr in attrs:
