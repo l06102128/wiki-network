@@ -170,6 +170,7 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         self.count += 1
         if self.count % 500 == 0:
             logging.info("Counter: %d", self.count)
+            print os.popen("ps v %d|awk '{print $8}'|tail -1" % os.getpid()).readline()
         if self.count % 2000 == 0:
             gc.collect()
 
