@@ -261,16 +261,14 @@ def opt_parse():
 
 
 def main():
+    opts, args = opt_parse()
+    xml = args[0]
     if opts.verbose:
         logging.basicConfig(stream=sys.stderr,
                             level=logging.DEBUG,
                             format='%(asctime)s %(levelname)s %(message)s',
                             datefmt='%Y-%m-%d %H:%M:%S')
-
     logging.info('---------------------START---------------------')
-
-    opts, args = opt_parse()
-    xml = args[0]
 
     ## SET UP FOR PROCESSING
     lang, date_, type_ = mwlib.explode_dump_filename(xml)
