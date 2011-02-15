@@ -161,17 +161,16 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         assert self._receiver is not None, "Receiver still not defined"
         self.ecache.add(self._receiver, {
                         self._sender: [mwlib.Message(self._time, welcome), ]})
-        self._sender = None
-        self._time = None
-        self.delattr(("_id", "_username", "_ip"))
+        self.delattr(("_id", "_username", "_ip", "_sender", "_time"))
 
     def process_page(self, _):
         if self._skip:
             self._skip = False
             return
         self.count += 1
-        if not self.count % 500:
+        if self.count % 500 == 0:
             logging.info("Counter: %d", self.count)
+        if self.count % 2000 == 0:
             gc.collect()
 
     def delattr(self, attrs):
