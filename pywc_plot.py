@@ -42,7 +42,7 @@ def collapse_values(timestamps, values, totals, radius):
     curr = []
     i = 0
     for j in timestamps:
-        if (j - first) < delta:
+        if (j.date() - first.date()) < delta:
             curr.append(j)
         else:
             try:
@@ -165,9 +165,12 @@ def main():
             plt.xlabel("Revisions Timestamp")
 
             # Don't plot zeros and skip zero revisions!
-            ser = [x for x in series if x != 0]
-            time = [x for k, x in enumerate(timestamps) if series[k] != 0]
-            tot = [x for k, x in enumerate(totals) if series[k] != 0]
+            #ser = [x for x in series if x != 0]
+            #time = [x for k, x in enumerate(timestamps) if series[k] != 0]
+            #tot = [x for k, x in enumerate(totals) if series[k] != 0]
+            ser = series
+            time = timestamps
+            tot = totals
 
             if opts.window and time and ser and tot:
                 time, ser, tot = collapse_values(time, ser, tot,
