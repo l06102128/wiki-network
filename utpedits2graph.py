@@ -61,9 +61,6 @@ class HistoryPageProcessor(mwlib.PageProcessor):
     counter_deleted = 0
     _re_welcome = None
     __welcome_pattern = None
-    _username = None
-    _id = None
-    _ip = None
 
     @property
     def welcome_pattern(self):
@@ -83,6 +80,9 @@ class HistoryPageProcessor(mwlib.PageProcessor):
     _skip_revision = False
     _time = None ## time of this revision
     _welcome = False
+    _username = None
+    _id = None
+    _ip = None
 
     def __init__(self, **kwargs):
         if 'ecache' not in kwargs:
@@ -161,7 +161,9 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         assert self._receiver is not None, "Receiver still not defined"
         self.ecache.add(self._receiver, {
                         self._sender: [mwlib.Message(self._time, welcome), ]})
-        self.delattr(("_id", "_username", "_ip", "_sender", "_time"))
+        self.delattr(("_id", "_username", "_ip", "_sender", "_time",
+                      "_welcome"))
+        del welcome, skip
 
     def process_page(self, _):
         if self._skip:
