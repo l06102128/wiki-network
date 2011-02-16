@@ -12,6 +12,7 @@ import numpy as np
 import sys
 import logging
 from sonet.timr import Timr
+from sonet.mediawiki import ts2dt
 
 # Quite ugly, if it's possible use groupby
 # [list(e) for k,e in groupby([11,12,13,21],(lambda x : x//10 ))]
@@ -74,10 +75,18 @@ def _gen_data(line, id_col, ignorecols, onlycols):
            i != len(line) - 2: # don't count last two cols
             yield elem
 
+def calc_perc(x, tot):
+    try:
+        return float(x) / float(tot)
+    except ZeroDivisionError:
+        return 0
+
 def main():
     import optparse
+    from sonet.lib import SonetOption
     p = optparse.OptionParser(
-        usage="usage: %prog [options] input_file output_file")
+        usage="usage: %prog [options] input_file output_file",
+        option_class=SonetOption)
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output")
     p.add_option('-i', '--ignorecols', action="store", dest="ignorecols",
@@ -92,6 +101,12 @@ def main():
                  help="Use percentages instead of absolute value")
     p.add_option('-w', '--window', action="store", dest="window", type=int,
                  help="Collapse days")
+    p.add_option('-s', '--start', action="store",
+        dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
+        help="Look for revisions starting from this date")
+    p.add_option('-e', '--end', action="store",
+        dest='end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
+        help="Look for revisions until this date")
     opts, files = p.parse_args()
 
     if len(files) != 2:
@@ -110,7 +125,7 @@ def main():
         ignorecols = [int(x) for x in opts.ignorecols.split(",")]
 
     # content contains all the csv file
-    content = [row for i, row in enumerate(csv_reader)]
+    content = [row for row in csv_reader]
 
     # CSV header, only of interesting columns
     header = [x for x in _gen_data(content[0], opts.id_col,
@@ -127,12 +142,7 @@ def main():
         mat.append([x for x in _gen_data(line, opts.id_col,
                                          ignorecols, onlycols)])
         totals.append(float(line[-2]))
-        timestamps.append(dt.strptime(line[opts.id_col],
-                          "%Y-%m-%dT%H:%M:%SZ"))
-
-    first_time = dt.strptime(content[1][0], "%Y-%m-%dT%H:%M:%SZ")
-    last_time = dt.strptime(content[-1][0], "%Y-%m-%dT%H:%M:%SZ")
-
+        timestamps.append(ts2dt(line[opts.id_col]))
     del content
 
     mat = np.array(mat, dtype=np.float).transpose()
@@ -142,6 +152,39 @@ def main():
     with Timr("Plotting"):
         for i, series in enumerate(mat):
             logging.info("Plotting page %d", i+1)
+
+            # Don't plot zeros and skip zero revisions!
+            #ser = [x for x in series if x != 0]
+            #time = [x for k, x in enumerate(timestamps) if series[k] != 0]
+            #tot = [x for k, x in enumerate(totals) if series[k] != 0]
+            ser = [x for k, x in enumerate(series) \
+                   if (not opts.start or timestamps[k] >= opts.start) and \
+                      (not opts.end or timestamps[k] <= opts.end)]
+            time = [x for k, x in enumerate(timestamps) \
+                    if (not opts.start or x >= opts.start) and \
+                       (not opts.end or x <= opts.end)]
+            tot = [x for k, x in enumerate(totals) \
+                   if (not opts.start or timestamps[k] >= opts.start) and \
+                      (not opts.end or timestamps[k] <= opts.end)]
+
+            if opts.window and len(time) and len(ser) and len(tot):
+                time, ser, tot = collapse_values(time, ser, tot,
+                                                 opts.window)
+
+            if opts.perc:
+                # Calculate percentages
+                ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
+                # Set axis limit 0-1 IS IT GOOD OR BAD?
+                #axis.set_ylim(0, 1)
+                plt.ylabel("%")
+                m = [calc_perc(x, totals[k]) for k, x in enumerate(series)]
+            else:
+                m = series
+            mean = sum(m) / len(m)
+            del m
+
+            first_time = time[0].date()
+            last_time = time[-1].date()
             plt.clf()
             plt.subplots_adjust(bottom=0.25)
             plt.xticks(rotation=90)
@@ -152,8 +195,8 @@ def main():
             axis.set_xlim(matplotlib.dates.date2num(first_time),
                           matplotlib.dates.date2num(last_time))
             if last_time - first_time < timedelta(days=30):
-                axis.xaxis.set_minor_locator(md.DayLocator(interval=1))
                 axis.xaxis.set_major_locator(md.DayLocator(interval=1))
+                axis.xaxis.set_minor_locator(md.DayLocator(interval=1))
             else:
                 axis.xaxis.set_minor_locator(md.MonthLocator(interval=1))
                 #auto_loc = md.AutoDateLocator(minticks=8, maxticks=12, interval_multiples=True)
@@ -164,27 +207,10 @@ def main():
             axis.tick_params(labelsize='x-small')
             plt.xlabel("Revisions Timestamp")
 
-            # Don't plot zeros and skip zero revisions!
-            #ser = [x for x in series if x != 0]
-            #time = [x for k, x in enumerate(timestamps) if series[k] != 0]
-            #tot = [x for k, x in enumerate(totals) if series[k] != 0]
-            ser = series
-            time = timestamps
-            tot = totals
-
-            if opts.window and time and ser and tot:
-                time, ser, tot = collapse_values(time, ser, tot,
-                                                   opts.window)
-
-            if opts.perc:
-                # Calculate percentages
-                ser = [x/tot[k]*100 for k, x in enumerate(ser)]
-                # Set axis limit 0-100 IS IT GOOD OR BAD?
-                #axis.set_ylim(0, 100)
-                plt.ylabel("%")
-
-            if time and ser:
-                plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
+            if len(time) and len(ser):
+                plt.plot(matplotlib.dates.date2num([t.date() for t in time]),
+                         ser, "b.-")
+                plt.axhline(y=mean, color="r")
                 plt.title(header[i])
                 pdf_pag.savefig()
         pdf_pag.close()

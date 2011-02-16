@@ -28,7 +28,7 @@ import json
 import difflib
 import diff_match_patch as dmp_module
 from sonet.mediawiki.pageprocessor import PageProcessor, HistoryPageProcessor
-
+from datetime import datetime as dt
 
 def fast_iter(context, func):
     """
@@ -525,6 +525,11 @@ def _diff_text(prev_text, text, timeout=1):
     equal = [x[1] for x in d if x[0] == 0]
     return " ".join(insert), " ".join(delete), " ".join(equal)
 
+def ts2dt(timestamp):
+    """
+    Wiki timestamp to datetime object
+    """
+    return dt.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
 
 if __name__ == "__main__":
     import doctest

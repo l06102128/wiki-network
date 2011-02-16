@@ -26,6 +26,15 @@ except ImportError:
     import re
 from sonet.timr import Timr
 
+def perc(x, tot, perc):
+    if perc:
+        try:
+            return float(x) / float(tot)
+        except ZeroDivisionError:
+            return 0
+    else:
+        return x
+
 
 class PyWC:
     """
@@ -46,6 +55,7 @@ class PyWC:
     flush_n = 100            # Number of pieces of text to store
     clean_wiki = True        # Clean wiki syntax
     clean_html = True        # Clean HTML
+    percentage = False       # Output as percentage
 
     clean_regex = (
         (re.compile(r"(^|\s)(\w\.)+"), ""),
@@ -159,8 +169,9 @@ class PyWC:
                "total": self._total,
                "text": self._text}
         # Join of self.categories and self._results values
-        for k, v in ((self.categories[x], self._results[x]) \
-                     for x in self.categories):
+        for k, v in ((self.categories[x], \
+                      perc(self._results[x], self._total, self.percentage)) \
+                    for x in self.categories):
             tmp[k] = v
         self.queue.append(tmp)
         del tmp
@@ -317,6 +328,9 @@ def main():
         usage="usage: %prog [options] dic_file input_file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
+    p.add_option('-p', action="store_true", dest="percentage", default=False,
+                 help="Output results as percentages (like LIWC) "
+                      "default=False")
     p.add_option('-c', '--charlimit', action="store", dest="charlimit",
                  type="int", default=100000,
                  help="Maximim characters per line (default=100000)")
@@ -351,6 +365,7 @@ def main():
     t.flush_n = opts.flush
     if opts.output is not None:
         t.csv_out = open(opts.output, 'w')
+    t.percentage = opts.percentage
 
     t.set_dic(files[0])
     src = open(files[1], 'r')

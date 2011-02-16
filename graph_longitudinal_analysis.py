@@ -96,7 +96,7 @@ def create_option_parser():
     import argparse
 
     p = argparse.ArgumentParser(
-            description='Process a graph file running a longitudinal'
+            description='Process a graph file running a longitudinal '
                         'analysis over it.')
 
     ## optional parameters
