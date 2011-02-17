@@ -208,8 +208,8 @@ def main():
             plt.xlabel("Revisions Timestamp")
 
             if len(time) and len(ser):
-                plt.plot(matplotlib.dates.date2num([t.date() for t in time]),
-                         ser, "b.-")
+                time = [t.date() for t in time]
+                plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
                 plt.title(header[i])
                 pdf_pag.savefig()
