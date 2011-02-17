@@ -330,7 +330,7 @@ def main():
                  help="Verbose output (like timings)")
     p.add_option('-p', action="store_true", dest="percentage", default=False,
                  help="Output results as percentages (like LIWC) "
-                      "default=False")
+                      "(default=false)")
     p.add_option('-c', '--charlimit', action="store", dest="charlimit",
                  type="int", default=100000,
                  help="Maximim characters per line (default=100000)")

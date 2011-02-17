@@ -8,6 +8,12 @@ import csv
 from sys import stdout
 from sonet.lib import yyyymmdd_to_datetime
 from datetime import datetime as dt
+import re
+
+RWORDS = re.compile(r"\S+")
+
+def words(text):
+    return [word for word in RWORDS.findall(text)]
 
 def main():
     import optparse
@@ -30,6 +36,8 @@ def main():
                  help="Get info about CSV file")
     p.add_option('-S', '--start-line', action="store", dest="start_line",
                  type="int", help="Skip lines before START_LINE")
+    p.add_option('-w', '--words-window', action="store", dest="words_window",
+                 type="int", help="Set a word window")
     p.add_option('-H', '--header', action="store_true", dest="header",
                  help="Output header")
     p.add_option('-s', '--start', action="store",
@@ -65,6 +73,7 @@ def main():
     # Print only intresting lines!
     # Really ugly but doesn't eat memory
     i = 0
+    queue = None
     for k, line in enumerate(csv_reader):
         if k < opts.start_line:
             continue
@@ -78,8 +87,54 @@ def main():
            (opts.type is None or line[3] == opts.type) and \
            (not opts.start or current_time > opts.start) and \
            (not opts.end or current_time < opts.end):
-            csv_writer.writerow(line)
             i += 1
+            if opts.words_window:
+                if not queue:
+                    #print "INITIALIZING QUEUE"
+                    queue = line[:]
+                    queue[-1] = ""
+                len_queue = len(words(queue[-1]))
+                counter = 0
+                for w in words(line[-1]):
+                    counter += 1
+                    queue[-1] += " " + w
+                    #print "ADD WORD", queue[-1], len_queue+counter
+                    if len_queue + counter >= opts.words_window:
+                        #print "FLUSH QUEUE"
+                        csv_writer.writerow(queue)
+                        queue = line[:]
+                        queue[-1] = ""
+                        len_queue = 0
+                        counter = 0
+                if len_queue == 0 and counter == 0:
+                    queue = None
+
+                """
+                wline = words(line[-1])
+                if len(wline) < opts.words_window:
+                    if not queue:
+                        # If queue is empty set initial value
+                        print "SETTING INITIAL QUEUE = LINE"
+                        queue = line
+                    else:
+                        #if len(words(queue[-1])) + len(wline) < opts.words_window:
+                        print "ADDING TEXT TO QUEUE"
+                        # add revision to queue
+                        queue[-1] += " " + " ".join(wline)
+                else:
+                    # If revision is too big leave it as its
+                    print "OUTPUTTING QUEUE AND LINE!"
+                    if queue:
+                        csv_writer.writerow(queue)
+                        queue = None
+                        i += 1
+                    csv_writer.writerow(line)
+                    i += 1
+                """
+            else:
+                csv_writer.writerow(line)
+    if queue:
+        csv_writer.writerow(queue)
 
     # hungry of memory
     """
