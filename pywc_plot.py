@@ -208,7 +208,8 @@ def main():
             plt.xlabel("Revisions Timestamp")
 
             if len(time) and len(ser):
-                time = [t.date() for t in time]
+                if opts.window:
+                    time = [t.date() for t in time]
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
                 plt.title(header[i])
