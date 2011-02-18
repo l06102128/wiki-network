@@ -171,17 +171,17 @@ def main():
                 time, ser, tot = collapse_values(time, ser, tot,
                                                  opts.window)
 
+            mean = float(sum(series)) / len(series)
             if opts.perc:
                 # Calculate percentages
                 ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
                 # Set axis limit 0-1 IS IT GOOD OR BAD?
                 #axis.set_ylim(0, 1)
                 plt.ylabel("%")
-                m = [calc_perc(x, totals[k]) for k, x in enumerate(series)]
-            else:
-                m = series
-            mean = sum(m) / len(m)
-            del m
+                try:
+                    mean = float(sum(series)) / sum(totals)
+                except ZeroDivisionError:
+                    mean = 0
 
             first_time = time[0].date()
             last_time = time[-1].date()
@@ -210,9 +210,10 @@ def main():
             if len(time) and len(ser):
                 if opts.window:
                     time = [t.date() for t in time]
+                print mean
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
-                plt.title(header[i])
+                plt.title("%s, Mean: %.3f" % (header[i], round(mean, 3)))
                 pdf_pag.savefig()
         pdf_pag.close()
 

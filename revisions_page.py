@@ -15,11 +15,11 @@
 
 from sonet.mediawiki import HistoryPageProcessor, \
                             get_translations, get_tags, \
-                            explode_dump_filename, diff_text, _diff_text
+                            explode_dump_filename, _diff_text  #, diff_text
 from sonet import lib
 from django.utils.encoding import smart_str
 import csv
-import difflib
+#import difflib
 import sys
 import logging
 from sonet.timr import Timr

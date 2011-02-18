@@ -220,19 +220,19 @@ def create_option_parser():
                    help="Type of page to analize (content|talk|all)"
                         " - default: %(default)s")
     p.add_argument('-e', '--editors-number', default=0, metavar="NUM_EDITORS",
-                   type=int, help="pages with less than NUM_EDITORS editors"
+                   type=int, help="pages with less than NUM_EDITORS editors "
                                   "are skipped (default: %(default)s)")
     p.add_argument('-n', '--revisions-number', default=0,
                    metavar="NUM_REVISIONS", type=int,
-                   help="pages with less than NUM_REVISIONS revisions"
+                   help="pages with less than NUM_REVISIONS revisions "
                         "are skipped (default: %(default)s)")
     p.add_argument('-s', '--initial_revision', type=lib.yyyymmdd_to_datetime,
-                   metavar="YYYYMMDD", help="Skip pages whose first revision"
+                   metavar="YYYYMMDD", help="Skip pages whose first revision "
                    "occurred later than this date", default=None)
     p.add_argument('-r', '--ratio', default=1., type=float, metavar="RATIO",
                   help="percentage of pages to be analyzed")
     p.add_argument('-T', '--min-text-length', default=0, metavar="TEXT_LENGTH",
-                   type=int, help="pages with text shorter than TEXT_LENGTH"
+                   type=int, help="pages with text shorter than TEXT_LENGTH "
                    "characters are skipped (default: %(default)s)")
     p.add_argument('-o', '--output', help="output file name",
                    metavar="OUTPUT_FILE", default=None)

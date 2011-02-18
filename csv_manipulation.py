@@ -6,7 +6,6 @@ the output of revisions_page.py
 
 import csv
 from sys import stdout
-from sonet.lib import yyyymmdd_to_datetime
 from datetime import datetime as dt
 import re
 
