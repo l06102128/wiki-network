@@ -131,6 +131,7 @@ It's possible to specify which kind of page you want to analize
 
 ### csv_manipulation.py
 Used to manage files exported by revisions_page.py (text cells can contain
-new lines so it is possible to manage them easily with head, tail, awk, ...)
+new lines so it isn't possible to manage them easily with head, tail, awk, ...)
 Using this script you can extract only specific pages or a little number of
-revisions from a huge file
+revisions from a huge file, select a start and end date of revisions or "condense"
+them in groups of X words.
