@@ -213,7 +213,7 @@ def main():
                 print mean
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
-                plt.title("%s, Mean: %.3f" % (header[i], round(mean, 3)))
+                plt.title("%s, Mean: %.5f" % (header[i], round(mean, 5)))
                 pdf_pag.savefig()
         pdf_pag.close()
 
