@@ -1,11 +1,11 @@
-id	po	ne	super	other	total	text
-a123	1	0	1	0	8	Hello there, today is a really good day
-a123	2	1	0	0	6	Today is a so great day
-4444	0	2	0	0	6	Today is a bad baddd day
-4444	1	0	0	0	4	Today I feel good
-aaaa	1	0	0	0	5	it ain't a good day
-1111	2	0	1	0	5	I definitely like that game
-1234	0	2	0	0	4	I don't like him
-1234	0	0	0	1	7	what kind of software do you use?
-1111	1	0	0	0	5	I met a kind girl
-1234	1	0	1	0	5	That girl is really kind
+id	po	ne	super	other	dic	sixltr	total	text
+a123	1	0	1	0	2	0	8	Hello there, today is a really good day
+a123	2	1	0	0	2	0	6	Today is a so great day
+4444	0	2	0	0	2	0	6	Today is a bad baddd day
+4444	1	0	0	0	1	0	4	Today I feel good
+aaaa	1	0	0	0	1	0	5	it ain't a good day
+1111	2	0	1	0	2	1	5	I definitely like that game
+1234	0	2	0	0	2	0	4	I don't like him
+1234	0	0	0	1	1	1	7	what kind of software do you use?
+1111	1	0	0	0	1	0	5	I met a kind girl
+1234	1	0	1	0	2	0	5	That girl is really kind

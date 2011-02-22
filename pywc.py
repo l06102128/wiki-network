@@ -84,7 +84,9 @@ class PyWC:
     _id = None         # Line ID
     _results = None    # Dictionary where keys are cat ids and
                        # values are counters
-    _total = None      # List of numbers of total words per column
+    _dic = None        # Number of words in dic
+    _sixltr = None    # Number of words > 6 letters
+    _total = None      # Number of total words per column
     _text = None       # Current text to analize
     _next_word = None  # Next word that has to be analized
     _prev_cat = None   # Categories of the last word that has been analized
@@ -166,6 +168,8 @@ class PyWC:
         Saves current piece of text that has been analized to the queue
         """
         tmp = {"id": self._id,
+               "dic": perc(self._dic, self._total, self.percentage),
+               "sixltr": perc(self._sixltr, self._total, self.percentage),
                "total": self._total,
                "text": self._text}
         # Join of self.categories and self._results values
@@ -217,6 +221,10 @@ class PyWC:
                 self._results[c] += 1
             except KeyError:
                 logging.warn("Invalid category id %s", c)
+        if len(word) > 6:  # Increment word > 6 letters counter
+            self._sixltr += 1
+        if len(cat) > 0:  # Increment word in dictionary counter
+            self._dic += 1
         self._total += 1
         self._prev_cat = cat
 
@@ -247,7 +255,7 @@ class PyWC:
         Reads a single cell of the csv file. It splits it
         into words and gives them to self.parse_word
         """
-        self.delattrs(("_results", "_total", "_text",
+        self.delattrs(("_results", "_dic", "_sixltr", "_total", "_text",
                        "_prev_word", "_prev cat"))
         self._text = col
         logging.info("--------PRIMA-----------")
@@ -264,6 +272,8 @@ class PyWC:
         self._results = {}
         for k in self.categories:
             self._results[k] = 0
+        self._dic = 0
+        self._sixltr = 0
         self._total = 0
         rwords = re.compile("[\w']+")
         # create a list of words (_no_ numbers)
@@ -311,7 +321,7 @@ class PyWC:
         except ValueError:
             cat_names = [x[1] for x in sorted(self.categories.items())]
 
-        self._keys = ["id"] + cat_names + ["total", "text"]
+        self._keys = ["id"] + cat_names + ["dic", "sixltr", "total", "text"]
         self.csv_writer = csv.DictWriter(self.csv_out,
                                          delimiter=self.delimiter,
                                          fieldnames=self._keys,

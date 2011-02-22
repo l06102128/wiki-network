@@ -117,20 +117,13 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         if self._skip_revision:
             return
 
-        timestamp = elem.text
-        year = int(timestamp[:4])
-        month = int(timestamp[5:7])
-        day = int(timestamp[8:10])
-        hour = int(timestamp[11:13])
-        minutes = int(timestamp[14:16])
-        seconds = int(timestamp[17:19])
-        revision_time = datetime(year, month, day, hour, minutes, seconds)
+        revision_time = mwlib.ts2dt(elem.text)
         if ((self.time_end and revision_time > self.time_end) or
             (self.time_start and revision_time < self.time_start)):
             self._skip_revision = True
         else:
             self._time = revision_time
-        del revision_time, timestamp, year, month, day, hour, minutes, seconds
+        del revision_time
 
         # Used only because there are two id tags. We're intrested in the
         # id child of contributor. As timestamp is before contributor is good
