@@ -366,7 +366,7 @@ class EventsProcessor(HistoryPageProcessor):
 
         self.flush()
 
-    def process_page(self, _):
+    def process_page(self, _=None):
         """
         process a page counting all the revisions made and
         calculating some statistics as number of days since
