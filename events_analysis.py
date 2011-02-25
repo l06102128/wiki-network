@@ -218,7 +218,6 @@ class EventsProcessor(HistoryPageProcessor):
     range_ = None
     skipped_days = None
     td_list = None
-    threshold = None
     __event_date = None
     __first_edit_date = None
     __data = None
@@ -352,8 +351,8 @@ class EventsProcessor(HistoryPageProcessor):
                 self.count_desired.append(self.__title)
 
             ## to skip or not to skip? This is the question...
-            if not self.__desired and self.threshold < 1.:
-                if self.threshold == 0. or random() > self.threshold:
+            if not self.__desired and threshold < 1.:
+                if threshold == 0. or random() > threshold:
                     self.__skip = True
                 else:
                     self.__skip = False
