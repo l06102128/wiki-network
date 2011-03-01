@@ -57,6 +57,9 @@ class PyWC:
     clean_html = True        # Clean HTML
     percentage = False       # Output as percentage
 
+    rwords = re.compile(r"[\w']+")
+    rqmarks = re.compile(r"\?")
+
     clean_regex = (
         (re.compile(r"(^|\s)(\w\.)+"), ""),
         (re.compile(r"[\:|;|8|=|-]+[a-z](\s|$)", re.IGNORECASE), ""))
@@ -84,8 +87,11 @@ class PyWC:
     _id = None         # Line ID
     _results = None    # Dictionary where keys are cat ids and
                        # values are counters
+    _qmarks = None     # Number of question marks
+    _unique = None     # Set of unique words, len() of the set is the number
+                       # of unique words
     _dic = None        # Number of words in dic
-    _sixltr = None    # Number of words > 6 letters
+    _sixltr = None     # Number of words > 6 letters
     _total = None      # Number of total words per column
     _text = None       # Current text to analize
     _next_word = None  # Next word that has to be analized
@@ -168,6 +174,8 @@ class PyWC:
         Saves current piece of text that has been analized to the queue
         """
         tmp = {"id": self._id,
+               "qmarks": perc(self._qmarks, self._total, self.percentage),
+               "unique": perc(len(self._unique), self._total, self.percentage),
                "dic": perc(self._dic, self._total, self.percentage),
                "sixltr": perc(self._sixltr, self._total, self.percentage),
                "total": self._total,
@@ -227,6 +235,7 @@ class PyWC:
             self._dic += 1
         self._total += 1
         self._prev_cat = cat
+        self._unique.add(word)
 
     def clean_wiki_syntax(self):
         """
@@ -255,8 +264,8 @@ class PyWC:
         Reads a single cell of the csv file. It splits it
         into words and gives them to self.parse_word
         """
-        self.delattrs(("_results", "_dic", "_sixltr", "_total", "_text",
-                       "_prev_word", "_prev cat"))
+        self.delattrs(("_results", "_qmarks", "_unique", "_dic", "_sixltr",
+                       "_total", "_text", "_prev_word", "_prev cat"))
         self._text = col
         logging.info("--------PRIMA-----------")
         logging.info(self._text)
@@ -272,12 +281,14 @@ class PyWC:
         self._results = {}
         for k in self.categories:
             self._results[k] = 0
+        self._qmarks = len([m for m in self.rqmarks.findall(col)])
+        self._unique = set()
         self._dic = 0
         self._sixltr = 0
         self._total = 0
-        rwords = re.compile("[\w']+")
         # create a list of words (_no_ numbers)
-        words = [word for word in rwords.findall(col) if not word.isdigit()]
+        words = [word for word in self.rwords.findall(col) \
+                 if not word.isdigit()]
         for i, word in enumerate(words):
             try:
                 self._next_word = words[i+1]
@@ -321,7 +332,8 @@ class PyWC:
         except ValueError:
             cat_names = [x[1] for x in sorted(self.categories.items())]
 
-        self._keys = ["id"] + cat_names + ["dic", "sixltr", "total", "text"]
+        self._keys = ["id"] + cat_names + ["qmarks", "unique", "dic", "sixltr",
+                                           "total", "text"]
         self.csv_writer = csv.DictWriter(self.csv_out,
                                          delimiter=self.delimiter,
                                          fieldnames=self._keys,
