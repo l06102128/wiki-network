@@ -138,7 +138,7 @@ class PyWC:
                             line[0] = "".join([line[0], "$"])
                     except IndexError:
                         continue
-                yield (re.compile(line[0]), line[1:])
+                yield (re.compile(line[0], re.IGNORECASE), line[1:])
 
     def set_dic(self, dic):
         """
