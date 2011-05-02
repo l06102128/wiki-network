@@ -128,6 +128,8 @@ def main():
         usage="usage: %prog [options] file desired_list acceptance_ratio")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
+    p.add_option('-e', '--encoding', action="store", dest="encoding",
+                 default="latin-1", help="encoding of the desired_list file")
     opts, files = p.parse_args()
     if opts.verbose:
         import sys, logging
@@ -144,10 +146,6 @@ def main():
     lang, _, _ = explode_dump_filename(xml)
     deflate, _lineno = lib.find_open_for_this_file(xml)
 
-    with open(desired_pages_fn, 'rb') as f:
-        desired_pages = [l[0].decode('latin-1') for l in csv.reader(f)
-                                        if l and not l[0][0] == '#']
-
     if _lineno:
         src = deflate(xml, 51) # Read first 51 lines to extract namespaces
     else:
@@ -163,7 +161,7 @@ def main():
     processor = HistoryEventsPageProcessor(tag=tag, lang=lang)
     processor.talkns = translation['Talk']
     processor.threshold = threshold
-    processor.set_desired(desired_pages)
+    processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
     with Timr('Retrieving bots'):
         processor.set_bots()
     print "BEGIN PARSING"

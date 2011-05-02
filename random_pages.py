@@ -236,6 +236,8 @@ def create_option_parser():
                    "characters are skipped (default: %(default)s)")
     p.add_argument('-o', '--output', help="output file name",
                    metavar="OUTPUT_FILE", default=None)
+    p.add_option('-e', '--encoding', action="store", dest="encoding",
+                 default="latin-1", help="encoding of the desired_list file")
 
     ## positional arguments
     p.add_argument('xml_fn', help="wikipedia dump to be parsed",
@@ -254,10 +256,6 @@ def main():
 
     op = create_option_parser()
     args = op.parse_args()
-
-    with open(args.desired_pages_fn, 'rb') as f:
-        desired_pages = [l[0].decode('latin-1') for l in csv.reader(f)
-                                        if l and not l[0][0] == '#']
 
     lang, date_, type_ = explode_dump_filename(args.xml_fn)
     deflate, _lineno = lib.find_open_for_this_file(args.xml_fn)
@@ -291,7 +289,7 @@ def main():
 
     processor.talkns = translation['Talk']
     processor.desired_page_type = args.type
-    processor.set_desired(desired_pages)
+    processor.set_desired_from_csv(desired_pages_fn, encoding=args.encoding)
     with Timr('processing'):
         processor.start(src)
 

@@ -145,6 +145,8 @@ def main():
         usage="usage: %prog [options] input_file desired_list output_file")
     p.add_option('-t', '--type', action="store", dest="type", default="all",
                  help="Type of page to analize (content|talk|all)")
+    p.add_option('-e', '--encoding', action="store", dest="encoding",
+                 default="latin-1", help="encoding of the desired_list file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
     p.add_option('-T', "--timeout", action="store", dest="timeout", type=float,
@@ -165,9 +167,6 @@ def main():
 
     dumps_checker(xml)
 
-    with open(desired_pages_fn, 'rb') as f:
-        desired_pages = [l[0].decode('latin-1') for l in csv.reader(f)
-                                        if l and not l[0][0] == '#']
     lang, _, _ = explode_dump_filename(xml)
     deflate, _lineno = lib.find_open_for_this_file(xml)
 
@@ -189,7 +188,7 @@ def main():
     elif opts.type == 'content':
         processor.get_talks = False
     processor.diff_timeout = opts.timeout
-    processor.set_desired(desired_pages)
+    processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
     processor.flush()
