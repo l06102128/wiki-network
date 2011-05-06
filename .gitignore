@@ -13,3 +13,4 @@
 .idea
 foo/*
 /*.pickle
+.pida-metadata
