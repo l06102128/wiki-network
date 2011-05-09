@@ -107,6 +107,8 @@ def main():
     p.add_option('-e', '--end', action="store",
         dest='end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions until this date")
+    p.add_option('-d', '--dic', action="store_true", dest="dic", default=False,
+                 help="Calculate percentage over dic column instead of total")
     opts, files = p.parse_args()
 
     if len(files) != 2:
@@ -137,11 +139,14 @@ def main():
     mat = []
     timestamps = []
     totals = []
+    tot_index = -2
+    if opts.dic:
+        tot_index = -4
 
     for line in content[1:]:
         mat.append([x for x in _gen_data(line, opts.id_col,
                                          ignorecols, onlycols)])
-        totals.append(float(line[-2]))
+        totals.append(float(line[tot_index]))
         timestamps.append(ts2dt(line[opts.id_col]))
     del content
 
