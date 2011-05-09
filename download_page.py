@@ -31,7 +31,8 @@ def get_revisions(title, csv_writer, lang, startid=None, prev_text=""):
         revs = pages[page]["revisions"]
         for r in revs:
             text =  smart_str(_diff_text(prev_text, r["*"])[0])
-            csv_writer.writerow([r["timestamp"], smart_str(title), "", text])
+            csv_writer.writerow([r["timestamp"], lang, smart_str(title),
+                                "", text])
             prev_text = r["*"]
     try:
         cont = result['query-continue']['revisions']['rvstartid']
