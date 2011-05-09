@@ -215,7 +215,9 @@ def main():
             if len(time) and len(ser):
                 if opts.window:
                     time = [t.date() for t in time]
-                print mean
+                logging.info("Mean: %f", mean)
+                if header[i] == "negemo" or header[i] == "posemo":
+                    print ser # ONLY FOR TESTING, FIXME WHEN FINISHED
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
                 plt.title("%s, Mean: %.5f" % (header[i], round(mean, 5)))
