@@ -281,13 +281,13 @@ class PyWC:
         self._results = {}
         for k in self.categories:
             self._results[k] = 0
-        self._qmarks = len([m for m in self.rqmarks.findall(col)])
+        self._qmarks = len([m for m in self.rqmarks.findall(self._text)])
         self._unique = set()
         self._dic = 0
         self._sixltr = 0
         self._total = 0
         # create a list of words (_no_ numbers)
-        words = [word for word in self.rwords.findall(col) \
+        words = [word for word in self.rwords.findall(self._text) \
                  if not word.isdigit()]
         for i, word in enumerate(words):
             try:
