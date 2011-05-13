@@ -19,6 +19,10 @@ try:
     re2_compile_with_fallback = re2.compile
 except ImportError:
     logging.warn('pyre2 not available: some functionalities can not be used')
+    root = logging.getLogger()
+    if root.handlers:
+        for handler in root.handlers:
+            root.removeHandler(handler)
     re2_compile_with_fallback = re.compile
 import sys
 from socket import inet_ntoa, inet_aton, error

@@ -156,10 +156,6 @@ def main():
     if len(files) != 3:
         p.error("Wrong parameters")
     if opts.verbose:
-        root = logging.getLogger()
-        if root.handlers:
-            for handler in root.handlers:
-                root.removeHandler(handler)
         logging.basicConfig(stream=sys.stderr,
                             level=logging.DEBUG,
                             format='%(asctime)s %(levelname)s %(message)s',
