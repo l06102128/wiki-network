@@ -23,8 +23,12 @@ try:
     import re2 as re
 except ImportError:
     logging.warn("pyre2 not available. It's gonna be a long job")
+    if root.handlers:
+        for handler in root.handlers:
+            root.removeHandler(handler)
     import re
 from sonet.timr import Timr
+from sonet.mediawiki import TextCleaner
 
 def perc(x, tot, perc):
     if perc:
@@ -60,25 +64,7 @@ class PyWC:
     rwords = re.compile(r"[\w']+")
     rqmarks = re.compile(r"\?")
 
-    clean_regex = (
-        (re.compile(r"(^|\s)(\w\.)+"), ""),
-        (re.compile(r"[\:|;|8|=|-]+[a-z](\s|$)", re.IGNORECASE), ""))
-
-    # TODO TODO TODO TODO TODO
-    clean_wiki_regex = (
-        (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+(\S+)?"), ""),
-        (re.compile(r"\[{1,2}([^\:\|]+?)\]{1,2}", re.DOTALL), r"\1"),
-        (re.compile(r"\[{1,2}.+?[\||\:]([^\|^\:]+?)\]{1,2}",
-                    re.DOTALL), r"\1"),
-        (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
-        (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
-        #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""))
-        (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), ""))
-
-    # Stripping HTML tags and comments
-    clean_html_regex = ((re.compile(r"<\!--.+?-->", re.DOTALL), ""),
-                        (re.compile(r"<.+?>"), ""),
-                        (re.compile(r"\&\w+;"), ""))
+    textcleaner = TextCleaner()
 
     cond_exp_regex = (re.compile(r"<([\w']+)>(\w+)(\/(\w+)?)?"),
                       re.compile(r"\(([\w\s]+)\)(\w+)(\/(\w+)?)?"))
@@ -237,28 +223,6 @@ class PyWC:
         self._prev_cat = cat
         self._unique.add(word)
 
-    def clean_wiki_syntax(self):
-        """
-        Cleans self._text from wiki syntax
-        """
-        # TODO FILTER WIKI SYNTAX
-        for regex, replace in self.clean_wiki_regex:
-            self._text = regex.sub(replace, self._text)
-
-    def clean_html_syntax(self):
-        """
-        Cleans self._text from HTML tags and comments
-        """
-        for regex, replace in self.clean_html_regex:
-            self._text = regex.sub(replace, self._text)
-
-    def clean_text(self):
-        """
-        Cleans self._text from emoticons and acronyms
-        """
-        for regex, replace in self.clean_regex:
-            self._text = regex.sub(replace, self._text)
-
     def parse_col(self, col):
         """
         Reads a single cell of the csv file. It splits it
@@ -270,11 +234,11 @@ class PyWC:
         logging.info("--------PRIMA-----------")
         logging.info(self._text)
         logging.info("-------------------")
-        self.clean_text()
+        self._text = self.textcleaner.clean_text(self._text)
         if self.clean_wiki:
-            self.clean_wiki_syntax()
+            self._text = self.textcleaner.clean_wiki_syntax(self._text)
         if self.clean_html:
-            self.clean_html_syntax()
+            self._text = self.textcleaner.clean_html_syntax(self._text)
         logging.info("--------DOPO------------")
         logging.info(self._text)
         logging.info("-------------------")
