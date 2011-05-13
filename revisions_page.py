@@ -14,6 +14,7 @@
 ##########################################################################
 
 from sonet.mediawiki import HistoryPageProcessor, \
+                            TextCleaner, \
                             get_translations, get_tags, \
                             explode_dump_filename, _diff_text  #, diff_text
 from sonet import lib
@@ -34,9 +35,12 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     get_talks = True
     get_articles = True
     diff_timeout = 0.5
+    clean = None
+    textcleaner = None
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
+        self.textcleaner = TextCleaner()
         self.queue = []
         f = open(self.output, 'w')
         self._keys = ["timestamp", "lang", "title", "type", "text"]
@@ -63,6 +67,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         """
         if self._text is None: # difflib doesn't like NoneType
             self._text = ""
+        if self.clean:
+            self._text = self.textcleaner.clean_all(self._text)
         page = {'title': smart_str(self._title),
                 'lang': self.lang,
                 'timestamp': self._date,
@@ -151,6 +157,9 @@ def main():
                  help="Verbose output (like timings)")
     p.add_option('-T', "--timeout", action="store", dest="timeout", type=float,
                  default=0.5, help="Diff timeout (default=0.5, 0=no timeout)")
+    p.add_option('-c', '--clean', action="store_true", dest="clean",
+                 default=False,
+                 help="Cleans HTML, wiki syntax, acronyms and emoticons")
     opts, files = p.parse_args()
 
     if len(files) != 3:
@@ -188,6 +197,7 @@ def main():
     elif opts.type == 'content':
         processor.get_talks = False
     processor.diff_timeout = opts.timeout
+    processor.clean = opts.clean
     processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
     with Timr('Processing'):
         processor.start(src) ## PROCESSING

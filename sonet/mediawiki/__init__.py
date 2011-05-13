@@ -13,26 +13,26 @@
 ##########################################################################
 
 import logging
-import re
 try:
-    import re2
-    re2_compile_with_fallback = re2.compile
+    import re2 as re 
 except ImportError:
     logging.warn('pyre2 not available: some functionalities can not be used')
     root = logging.getLogger()
     if root.handlers:
         for handler in root.handlers:
             root.removeHandler(handler)
-    re2_compile_with_fallback = re.compile
-import sys
+    import re
+re2_compile_with_fallback = re.compile
+
 from socket import inet_ntoa, inet_aton, error
 from urllib import urlopen
 from collections import namedtuple, defaultdict
 import json
 import difflib
 import diff_match_patch as dmp_module
-from sonet.mediawiki.pageprocessor import PageProcessor, HistoryPageProcessor
 from datetime import datetime as dt
+from sonet.mediawiki.pageprocessor import PageProcessor, HistoryPageProcessor
+from sonet.mediawiki.textcleaner import TextCleaner
 
 def fast_iter(context, func):
     """
