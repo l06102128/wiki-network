@@ -10,11 +10,12 @@ except ImportError:
     import re
 
 
-class TextCleaner:
+class TextCleaner(object):
     """
-    Class with some methods to clean text in order to obtain only significant
-    words. For performance reasons there's the need of creating an instance of
-    the class instead of using class-methods directly
+    Provides some useful methods to clean text in order to obtain only
+    significant words.
+    For performance reasons there's the need of creating an instance of
+    the class instead of using class-methods directly.
     """
 
     def __init__(self):
@@ -43,7 +44,7 @@ class TextCleaner:
 
     def clean_wiki_syntax(self, text):
         """
-        Cleans self._text from wiki syntax
+        Cleans text from wiki syntax
         """
         for regex, replace in self.clean_wiki_regex:
             text = regex.sub(replace, text)
@@ -51,7 +52,7 @@ class TextCleaner:
 
     def clean_html_syntax(self, text):
         """
-        Cleans self._text from HTML tags and comments
+        Cleans text from HTML tags and comments
         """
         for regex, replace in self.clean_html_regex:
             text = regex.sub(replace, text)
@@ -59,14 +60,23 @@ class TextCleaner:
 
     def clean_text(self, text):
         """
-        Cleans self._text from emoticons and acronyms
+        Cleans text from emoticons and acronyms
         """
         for regex, replace in self.clean_regex:
             text = regex.sub(replace, text)
         return text
 
     def clean_all(self, text):
-        text = self.clean_text(text)
-        text = self.clean_wiki_syntax(text)
-        text = self.clean_html_syntax(text)
+        """
+        Applies all the clean methods that are offered from the class that
+        start with "clean_"
+        """
+        import inspect
+        members = [self.__getattribute__(member_name) \
+                   for member_name, _ in inspect.getmembers(self) \
+                   if member_name.startswith("clean_") and
+                   member_name != "clean_all"]
+        for member in members:
+            if inspect.ismethod(member):
+                text = member(text)
         return text
