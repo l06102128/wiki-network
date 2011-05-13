@@ -35,7 +35,8 @@ class TextCleaner(object):
             (re.compile(r"\[{1,2}.+?\]{1,2}", re.DOTALL), ""),
             (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
             #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""))
-            (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), ""))
+            (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), ""),
+            (re.compile(r"May"), ""))
 
         # Stripping HTML tags and comments
         self.clean_html_regex = ((re.compile(r"<\!--.+?-->", re.DOTALL), ""),
