@@ -23,6 +23,7 @@ try:
     import re2 as re
 except ImportError:
     logging.warn("pyre2 not available. It's gonna be a long job")
+    root = logging.getLogger()
     if root.handlers:
         for handler in root.handlers:
             root.removeHandler(handler)
