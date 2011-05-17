@@ -177,6 +177,9 @@ def main():
                                                  opts.window)
 
             mean = float(sum(series)) / len(series)
+            #rel_mean is the mean for the period [opts.end, opts.start]
+            rel_mean = float(sum(ser)) / len(ser) 
+	
             if opts.perc:
                 # Calculate percentages
                 ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
@@ -185,8 +188,10 @@ def main():
                 plt.ylabel("%")
                 try:
                     mean = float(sum(series)) / sum(totals)
+                    rel_mean = float(sum(ser)) / len(ser)
                 except ZeroDivisionError:
                     mean = 0
+                    rel_mean = 0
 
             first_time = time[0].date()
             last_time = time[-1].date()
@@ -216,12 +221,14 @@ def main():
                 if opts.window:
                     time = [t.date() for t in time]
                 logging.info("Mean: %f", mean)
+                logging.info("Relative Mean: %f", rel_mean)
                 if header[i] == "negemo" or header[i] == "posemo":
                     print ser # ONLY FOR TESTING, FIXME WHEN FINISHED
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
-                plt.title("%s, Mean: %.5f" % (header[i], round(mean, 5)))
+                plt.title("%s - Mean: %.5f - Relative mean: %.5f" % (header[i], round(mean, 5), round(rel_mean, 5)))
                 pdf_pag.savefig()
+
         pdf_pag.close()
 
 if __name__ == "__main__":
