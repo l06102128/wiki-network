@@ -181,17 +181,18 @@ def main():
             rel_mean = float(sum(ser)) / len(ser) 
 	
             if opts.perc:
+                try:
+                    mean = float(sum(series)) / sum(totals)
+                    #rel_mean = float(sum(ser)) / len(ser)
+                    rel_mean = float(sum(ser)) / sum(tot)
+                except ZeroDivisionError:
+                    mean = 0
+                    rel_mean = 0
                 # Calculate percentages
                 ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
                 # Set axis limit 0-1 IS IT GOOD OR BAD?
                 #axis.set_ylim(0, 1)
                 plt.ylabel("%")
-                try:
-                    mean = float(sum(series)) / sum(totals)
-                    rel_mean = float(sum(ser)) / len(ser)
-                except ZeroDivisionError:
-                    mean = 0
-                    rel_mean = 0
 
             first_time = time[0].date()
             last_time = time[-1].date()
