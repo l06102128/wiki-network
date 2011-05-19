@@ -40,7 +40,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
-        self.textcleaner = TextCleaner()
+        self.textcleaner = TextCleaner(userns)
         self.queue = []
         f = open(self.output, 'w')
         self._keys = ["timestamp", "lang", "title", "type", "text"]
@@ -190,7 +190,8 @@ def main():
     src = deflate(xml)
 
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
-                                              output=output)
+                                              output=output,
+                                              userns=translation['User'])
     processor.talkns = translation['Talk']
     if opts.type == 'talk':
         processor.get_articles = False
