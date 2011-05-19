@@ -40,7 +40,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
-        self.textcleaner = TextCleaner(userns)
+        self.textcleaner = TextCleaner(kwargs["userns"])
         self.queue = []
         f = open(self.output, 'w')
         self._keys = ["timestamp", "lang", "title", "type", "text"]
