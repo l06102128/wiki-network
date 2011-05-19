@@ -90,7 +90,7 @@ def main():
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output")
     p.add_option('-i', '--ignorecols', action="store", dest="ignorecols",
-                 help="Coulmns numbers of the source file to ignore"
+                 help="Columns numbers of the source file to ignore"
                       "(comma separated and starting from 0)")
     p.add_option('-I', '--id', action="store", dest="id_col", type="int",
                  help="Id column number (starting from 0)", default=0)
@@ -101,6 +101,12 @@ def main():
                  help="Use percentages instead of absolute value")
     p.add_option('-w', '--window', action="store", dest="window", type=int,
                  help="Collapse days")
+    p.add_option('--exclude-less-than', action="store", dest="excludelessthan", type=int,
+                 help="Exclude lines with totals (or dic if -d option is used) " + \
+		 "smaller than this parameter")
+    p.add_option('--exclude-more-than', action="store", dest="excludemorethan", type=int,
+                 help="Exclude lines with totals (or dic if -d option is used) " + \
+		 "greater than this parameter")
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
@@ -144,6 +150,14 @@ def main():
         tot_index = -4
 
     for line in content[1:]:
+        #filter only pages with total (or dic is -d) greater or smaller than X
+        if opts.excludemorethan:
+            if float(line[tot_index]) > opts.excludemorethan:
+	        continue
+        if opts.excludelessthan:
+            if float(line[tot_index]) < opts.excludelessthan:
+	        continue
+
         mat.append([x for x in _gen_data(line, opts.id_col,
                                          ignorecols, onlycols)])
         totals.append(float(line[tot_index]))
@@ -177,16 +191,21 @@ def main():
                                                  opts.window)
 
             mean = float(sum(series)) / len(series)
+            #rel_mean is the mean for the period [opts.end, opts.start]
+            rel_mean = float(sum(ser)) / len(ser) 
+	
             if opts.perc:
+                try:
+                    mean = float(sum(series)) / sum(totals)
+                    rel_mean = float(sum(ser)) / sum(tot)
+                except ZeroDivisionError:
+                    mean = 0
+                    rel_mean = 0
                 # Calculate percentages
                 ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
                 # Set axis limit 0-1 IS IT GOOD OR BAD?
                 #axis.set_ylim(0, 1)
                 plt.ylabel("%")
-                try:
-                    mean = float(sum(series)) / sum(totals)
-                except ZeroDivisionError:
-                    mean = 0
 
             first_time = time[0].date()
             last_time = time[-1].date()
@@ -216,12 +235,14 @@ def main():
                 if opts.window:
                     time = [t.date() for t in time]
                 logging.info("Mean: %f", mean)
+                logging.info("Relative Mean: %f", rel_mean)
                 if header[i] == "negemo" or header[i] == "posemo":
                     print ser # ONLY FOR TESTING, FIXME WHEN FINISHED
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
-                plt.title("%s, Mean: %.5f" % (header[i], round(mean, 5)))
+                plt.title("%s - Mean: %.5f - Relative mean: %.5f" % (header[i], round(mean, 5), round(rel_mean, 5)))
                 pdf_pag.savefig()
+
         pdf_pag.close()
 
 if __name__ == "__main__":
