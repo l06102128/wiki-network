@@ -58,8 +58,8 @@ class PyWC:
     id_col = 0               # Number of the id column
     dic_regex = False        # Use dictionary made of regex
     flush_n = 100            # Number of pieces of text to store
-    clean_wiki = True        # Clean wiki syntax
-    clean_html = True        # Clean HTML
+    clean_wiki = None        # Clean wiki syntax
+    clean_html = None        # Clean HTML
     percentage = False       # Output as percentage
 
     rwords = re.compile(r"[\w']+")
@@ -235,7 +235,8 @@ class PyWC:
         logging.info("--------PRIMA-----------")
         logging.info(self._text)
         logging.info("-------------------")
-        self._text = self.textcleaner.clean_text(self._text)
+        if self.clean_wiki or self.clean_html:
+            self._text = self.textcleaner.clean_text(self._text)
         if self.clean_wiki:
             self._text = self.textcleaner.clean_wiki_syntax(self._text)
         if self.clean_html:
@@ -331,6 +332,8 @@ def main():
     p.add_option('-f', "--flush", action="store", dest="flush", type="int",
                  default=100,
                  help="Flushing to output every N pieces of text")
+    p.add_option("-c" "--help", action="store_true", dest="clean",
+                 default=False, help="Clean text from wiki syntax/HTML")
     p.add_option('-o', "--output", action="store", dest="output",
                  help="Output file (default=STDOUT)")
     opts, files = p.parse_args()
@@ -345,6 +348,7 @@ def main():
 
     t = PyWC()
     t.max_char_limit = opts.charlimit
+    t.clean_wiki = t.clean_html = opts.clean
     if opts.ignorecols:
         t.ignorecols = [int(x) for x in opts.ignorecols.split(",")]
     t.id_col = opts.id_col

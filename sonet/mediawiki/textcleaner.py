@@ -18,7 +18,7 @@ class TextCleaner(object):
     the class instead of using class-methods directly.
     """
 
-    def __init__(self):
+    def __init__(self, user_namespace="User"):
         """
         Compiles regular expressions for performance
         """
@@ -27,6 +27,8 @@ class TextCleaner(object):
             (re.compile(r"[\:|;|8|=|-]+[a-z](\s|$)", re.IGNORECASE), ""))
 
         self.clean_wiki_regex = (
+            (re.compile(r"\[{1,3}%s\:(.+?)\|(.+?)\]{1,3}" % user_namespace),
+             ""),
             (re.compile(r"(?:https?://)(?:[\w]+\.)(?:\.?[\w]{2,})+(\S+)?"),
                         ""),
             (re.compile(r"\[{1,2}([^\:\|]+?)\]{1,2}", re.DOTALL), r"\1"),
