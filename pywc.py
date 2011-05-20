@@ -332,7 +332,7 @@ def main():
     p.add_option('-f', "--flush", action="store", dest="flush", type="int",
                  default=100,
                  help="Flushing to output every N pieces of text")
-    p.add_option("-c" "--clean", action="store_true", dest="clean",
+    p.add_option("-c", "--clean", action="store_true", dest="clean",
                  default=False, help="Clean text from wiki syntax/HTML")
     p.add_option('-o', "--output", action="store", dest="output",
                  help="Output file (default=STDOUT)")
