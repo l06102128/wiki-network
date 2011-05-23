@@ -5,9 +5,10 @@ import csv
 from sonet.mediawiki import _diff_text
 from django.utils.encoding import smart_str
 import logging
+from sonet.mediawiki import TextCleaner
 
-
-def get_revisions(title, csv_writer, lang, startid=None, prev_text=""):
+def get_revisions(title, csv_writer, lang, textcleaner,
+                  startid=None, prev_text=""):
     api_base = 'http://%s.wikipedia.org/w/api.php' % lang
     options = {}
     options.update({
@@ -30,10 +31,11 @@ def get_revisions(title, csv_writer, lang, startid=None, prev_text=""):
     for page in pages:
         revs = pages[page]["revisions"]
         for r in revs:
-            text =  smart_str(_diff_text(prev_text, r["*"])[0])
+            text_cleaned = textcleaner.clean_all(r["*"])
+            text = smart_str(_diff_text(prev_text, text_cleaned)[0])
             csv_writer.writerow([r["timestamp"], lang, smart_str(title),
                                 "", text])
-            prev_text = r["*"]
+            prev_text = text_cleaned
     try:
         cont = result['query-continue']['revisions']['rvstartid']
         logging.info("Continue to %d", cont)
@@ -45,23 +47,26 @@ def get_revisions(title, csv_writer, lang, startid=None, prev_text=""):
 def main():
     import optparse
     p = optparse.OptionParser(
-        usage="usage: %prog [options] output_file")
+        usage="usage: %prog [options] page_title output_file")
     p.add_option('-l', '--lang', action="store", dest="lang", default="en",
                  help="Wikipedia language")
-    p.add_option('-t', '--title', action="store", dest="title",
-                 help="Page to download")
+    p.add_option('-c', '--clean', action="store_true", dest="clean",
+                 help="Clean wiki syntax / HTML")
     opts, files = p.parse_args()
-    if len(files) != 1:
+    if len(files) != 2:
         p.error("Wrong parameters")
     logging.basicConfig(stream=sys.stderr,
                         level=logging.DEBUG,
                         format='%(asctime)s %(levelname)s %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
-    csv_writer = csv.writer(open(files[0], "w"),
+    csv_writer = csv.writer(open(files[1], "w"),
                  delimiter="\t",
                  quotechar='"',
                  quoting=csv.QUOTE_ALL)
-    get_revisions(opts.title, csv_writer, opts.lang)
+    textcleaner = None
+    if opts.clean:
+        textcleaner = TextCleaner()
+    get_revisions(files[0], csv_writer, opts.lang, textcleaner)
 
 if __name__ == "__main__":
     main()
