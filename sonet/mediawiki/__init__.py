@@ -14,7 +14,7 @@
 
 import logging
 try:
-    import re2 as re 
+    import re2 as re
 except ImportError:
     logging.warn('pyre2 not available: some functionalities can not be used')
     root = logging.getLogger()
@@ -31,7 +31,11 @@ import json
 import difflib
 import diff_match_patch as dmp_module
 from datetime import datetime as dt
-from sonet.mediawiki.pageprocessor import PageProcessor, HistoryPageProcessor
+try:
+    from sonet.mediawiki.pageprocessor import PageProcessor, \
+                                              HistoryPageProcessor
+except ImportError:
+    pass
 from sonet.mediawiki.textcleaner import TextCleaner
 
 def fast_iter(context, func):

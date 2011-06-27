@@ -233,18 +233,18 @@ class PyWC:
         self.delattrs(("_results", "_qmarks", "_unique", "_dic", "_sixltr",
                        "_total", "_text", "_prev_word", "_prev cat"))
         self._text = col
-        logging.info("--------PRIMA-----------")
-        logging.info(self._text)
-        logging.info("-------------------")
+        #logging.info("--------PRIMA-----------")
+        #logging.info(self._text)
+        #logging.info("-------------------")
         if self.clean_wiki or self.clean_html:
             self._text = self.textcleaner.clean_text(self._text)
         if self.clean_wiki:
             self._text = self.textcleaner.clean_wiki_syntax(self._text)
         if self.clean_html:
             self._text = self.textcleaner.clean_html_syntax(self._text)
-        logging.info("--------DOPO------------")
-        logging.info(self._text)
-        logging.info("-------------------")
+        #logging.info("--------DOPO------------")
+        #logging.info(self._text)
+        #logging.info("-------------------")
         self._results = Counter()
         self._qmarks = len([m for m in self.rqmarks.findall(self._text)])
         self._unique = set()
