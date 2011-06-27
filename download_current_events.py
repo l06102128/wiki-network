@@ -18,19 +18,20 @@ def get_data(output, lang="en", eititle="Template:Current", eicontinue=None):
         'einamespace': 0,
         'format': 'json'
     }
-
+    articles = []
     while not done:
         if eicontinue != None:
             options['eicontinue'] = eicontinue
         url = api_base + '?' + urllib.urlencode(options)
         logging.info(url)
         result = simplejson.load(urllib.urlopen(url))
-        articles = result["query"]["embeddedin"]
+        articles += [x["title"] for x in result["query"]["embeddedin"]]
         if "query-continue" in result:
             eicontinue = result["query-continue"]["embeddedin"]["eicontinue"]
         else:
             done = True
-
+    with open(output, "w") as f:
+        f.writelines(articles)
 
 def main():
     import optparse
