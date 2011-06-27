@@ -30,6 +30,7 @@ except ImportError:
     import re
 from sonet.timr import Timr
 from sonet.mediawiki import TextCleaner
+from collections import Counter
 
 def perc(x, tot, perc):
     if perc:
@@ -244,9 +245,7 @@ class PyWC:
         logging.info("--------DOPO------------")
         logging.info(self._text)
         logging.info("-------------------")
-        self._results = {}
-        for k in self.categories:
-            self._results[k] = 0
+        self._results = Counter()
         self._qmarks = len([m for m in self.rqmarks.findall(self._text)])
         self._unique = set()
         self._dic = 0
