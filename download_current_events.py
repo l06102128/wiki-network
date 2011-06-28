@@ -25,7 +25,7 @@ def get_data(output, lang="en", eititle="Template:Current", eicontinue=None):
         url = api_base + '?' + urllib.urlencode(options)
         logging.info(url)
         result = simplejson.load(urllib.urlopen(url))
-        articles += [x["title"].encode('UTF-8') \
+        articles += ["%s\n" % x["title"].encode('UTF-8') \
                      for x in result["query"]["embeddedin"]]
         if "query-continue" in result:
             eicontinue = result["query-continue"]["embeddedin"]["eicontinue"]
