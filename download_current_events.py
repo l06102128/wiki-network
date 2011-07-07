@@ -21,7 +21,7 @@ def get_data(output, lang="en", eititle="Template:Current", eicontinue=None):
     articles = []
     while not done:
         if eicontinue != None:
-            options['eicontinue'] = eicontinue
+            options['eicontinue'] = eicontinue.encode("UTF-8")
         url = api_base + '?' + urllib.urlencode(options)
         logging.info(url)
         result = simplejson.load(urllib.urlopen(url))
