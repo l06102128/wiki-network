@@ -12,6 +12,7 @@
 #  GNU General Public License for more details.                          #
 #                                                                        #
 ##########################################################################
+
 import igraph as ig
 from sonet.mediawiki import addGroupAttribute, addBlockedAttribute, isip, \
      explode_dump_filename
