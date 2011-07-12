@@ -84,11 +84,12 @@ class HistoryPageProcessor(PageProcessor):
     def set_desired(self, l):
         self.desired_pages = frozenset(l)
 
-    def set_desired_from_csv(self, fn, encoding='latin-1'):
+    def set_desired_from_csv(self, fn, encoding='latin-1', delimiter=','):
         import csv
 
         with open(fn, 'rb') as f:
-            self.set_desired([l[0].decode(encoding) for l in csv.reader(f)
+            self.set_desired([l[0].decode(encoding)
+                              for l in csv.reader(f, delimiter=delimiter)
                               if l and not l[0][0] == '#'])
 
     def is_desired(self, title):

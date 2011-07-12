@@ -145,7 +145,7 @@ def main():
     p.add_option('-E', '--encoding', action="store", dest="encoding",
                  default="latin-1", help="encoding of the desired_list file")
     p.add_option('-d', '--delimiter', action="store", dest="delimiter",
-                 default="\t", help="CSV delimiter")
+                 default=",", help="CSV delimiter")
     p.add_option('-s', '--start', action="store", dest='start',
                  type="yyyymmdd", metavar="YYYYMMDD", default=None,
                  help="Look for revisions starting from this date")
@@ -186,7 +186,9 @@ def main():
     processor.threshold = threshold
     processor.start_date = opts.start
     processor.end_date = opts.end
-    processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
+    processor.set_desired_from_csv(desired_pages_fn,
+                                   encoding=opts.encoding,
+                                   delimiter=opts.delimiter)
     with Timr('Retrieving bots'):
         processor.set_bots()
     print "BEGIN PARSING"
