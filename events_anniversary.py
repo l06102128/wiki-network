@@ -25,6 +25,7 @@ from sonet.models import get_events_table
 from base64 import b64encode
 from zlib import compress
 from wbin import serialize
+from datetime import datetime as dt
 
 class HistoryEventsPageProcessor(HistoryPageProcessor):
     queue = None
@@ -81,10 +82,10 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         day = int(timestamp[8:10])
         revision_time = date(year, month, day)
 
-        if (self.start_date and revision_time < self.start_date):
+        if (self.start_date and revision_time < dt.date(self.start_date)):
             self._skip = True
             return
-        if (self.end_date and revision_time > self.end_date):
+        if (self.end_date and revision_time > dt.date(self.end_date)):
             self._skip = True
             return
 
