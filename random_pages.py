@@ -236,7 +236,7 @@ def create_option_parser():
                    "characters are skipped (default: %(default)s)")
     p.add_argument('-o', '--output', help="output file name",
                    metavar="OUTPUT_FILE", default=None)
-    p.add_option('-e', '--encoding', action="store", dest="encoding",
+    p.add_argument('--encoding', action="store", dest="encoding",
                  default="latin-1", help="encoding of the desired_list file")
 
     ## positional arguments
