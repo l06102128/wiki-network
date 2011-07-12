@@ -396,12 +396,14 @@ def opt_parse():
 
     p = OptionParser(usage="usage: %prog [options] dumpfile",
                      option_class=SonetOption)
-    p.add_option('-s', '--start', action="store",
-        dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
-        help="Look for revisions starting from this date")
-    p.add_option('-e', '--end', action="store",
-        dest='end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
-        help="Look for revisions until this date")
+
+    # TODO: implement time limits!
+    #p.add_option('-s', '--start', action="store",
+    #    dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
+    #    help="Look for revisions starting from this date")
+    #p.add_option('-e', '--end', action="store",
+    #    dest='end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
+    #    help="Look for revisions until this date")
     opts, args = p.parse_args()
 
     ## CHECK IF OPTIONS ARE OK

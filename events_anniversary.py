@@ -32,6 +32,9 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
     insert = None
     bots = []
 
+    start_date = None
+    end_date = None
+
     def __init__(self, **kwargs):
         super(HistoryEventsPageProcessor, self).__init__(**kwargs)
         self.queue = []
@@ -78,6 +81,13 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         day = int(timestamp[8:10])
         revision_time = date(year, month, day)
 
+        if (self.start_date and revision_time < self.start_date):
+            self._skip = True
+            return
+        if (self.end_date and revision_time > self.end_date):
+            self._skip = True
+            return
+
         self._date = (revision_time - self.s_date).days
         ## default value for self._date is a list where
         ## first element is for total revisions, the second
@@ -122,14 +132,26 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
 
 def main():
     import optparse
+    from sonet.lib import SonetOption
     import csv
 
     p = optparse.OptionParser(
-        usage="usage: %prog [options] file desired_list acceptance_ratio")
+        usage="usage: %prog [options] file desired_list acceptance_ratio",
+        option_class=SonetOption
+    )
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
-    p.add_option('-e', '--encoding', action="store", dest="encoding",
+    p.add_option('-E', '--encoding', action="store", dest="encoding",
                  default="latin-1", help="encoding of the desired_list file")
+    p.add_option('-d', '--delimiter', action="store", dest="delimiter",
+                 default="\t", help="CSV delimiter")
+    p.add_option('-s', '--start', action="store", dest='start',
+                 type="yyyymmdd", metavar="YYYYMMDD", default=None,
+                 help="Look for revisions starting from this date")
+    p.add_option('-e', '--end', action="store", dest='end', type="yyyymmdd",
+                 metavar="YYYYMMDD", default=None,
+                 help="Look for revisions until this date")
+
     opts, files = p.parse_args()
     if opts.verbose:
         import sys, logging
@@ -161,6 +183,8 @@ def main():
     processor = HistoryEventsPageProcessor(tag=tag, lang=lang)
     processor.talkns = translation['Talk']
     processor.threshold = threshold
+    processor.start_date = opts.start
+    processor.end_date = opts.end
     processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
     with Timr('Retrieving bots'):
         processor.set_bots()
@@ -171,6 +195,4 @@ def main():
 
 
 if __name__ == "__main__":
-    #import cProfile as profile
-    #profile.run('main()', 'mainprof')
     main()
