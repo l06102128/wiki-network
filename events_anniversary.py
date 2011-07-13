@@ -59,6 +59,9 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         self.queue = []
 
     def save(self):
+        if not self._title:
+            return
+
         data = {
             'title': self._title,
             'type': self._type,
