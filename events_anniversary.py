@@ -36,6 +36,8 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
     start_date = None
     end_date = None
 
+    _skip_revision = None
+
     def __init__(self, **kwargs):
         super(HistoryEventsPageProcessor, self).__init__(**kwargs)
         self.queue = []
@@ -74,7 +76,8 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         self.bots = frozenset(getUsersGroup(lang=self.lang, edits_only=True))
 
     def process_timestamp(self, elem):
-        if self._skip: return
+        if self._skip:
+            return
 
         timestamp = elem.text
         year = int(timestamp[:4])
@@ -83,10 +86,10 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         revision_time = date(year, month, day)
 
         if (self.start_date and revision_time < dt.date(self.start_date)):
-            self._skip = True
+            self._skip_revision = True
             return
         if (self.end_date and revision_time > dt.date(self.end_date)):
-            self._skip = True
+            self._skip_revision = True
             return
 
         self._date = (revision_time - self.s_date).days
@@ -105,6 +108,8 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
             print 'PAGES:', self.counter_pages, 'REVS:', self.count
 
     def process_username(self, elem):
+        if self._skip_revision:
+            return
         try:
             u = elem.text.encode('utf-8')
             ## whether user is a bot or not
@@ -119,6 +124,8 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
             pass
 
     def process_ip(self, elem):
+        if self._skip_revision:
+            return
         if not elem.text in self._editors:
             self._editors[elem.text] = 'anonymous'
         ## Contributor is anonymous, thus increments anonymous' contribution
@@ -129,6 +136,9 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         if self._desired is True:
             raise ValueError, "The page %s is a redirect. " % self._title + \
                               "Pages in the desired list must not be redirects."
+
+    def process_revision(self, _):
+        self._skip_revison = False
 
 
 def main():
