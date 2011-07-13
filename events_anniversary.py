@@ -146,6 +146,7 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
     def process_page(self, _):
         if not self._skip:
             self.save()
+        self._skip = False
         self._skip_revision = False
 
 
