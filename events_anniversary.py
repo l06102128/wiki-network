@@ -140,6 +140,11 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
     def process_revision(self, _):
         self._skip_revison = False
 
+    def process_page(self, _):
+        if not self._skip:
+            self.save()
+        self._skip_revision = False
+
 
 def main():
     import optparse
