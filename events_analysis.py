@@ -218,6 +218,7 @@ class EventsProcessor(HistoryPageProcessor):
     range_ = None
     skipped_days = None
     td_list = None
+    encoding = "latin-1"
     __event_date = None
     __first_edit_date = None
     __data = None
@@ -270,7 +271,7 @@ class EventsProcessor(HistoryPageProcessor):
     def set_desired(self, fn):
         ## save desired pages list
         for r in csv.reader(open(fn, 'rb')):
-            page = r[0].decode('latin-1').replace('_',' ')
+            page = r[0].decode(self.encoding).replace('_',' ')
             if page[0] == '#':
                 continue
 
@@ -495,7 +496,8 @@ def create_option_parser():
     op.add_option('-R', '--ratio', action="store", dest="ratio",
                  help="percentage of pages to be analyzed",
                  default=1., type="float")
-
+    op.add_option('-e', '--encoding', action="store", dest="encoding",
+                 default="latin-1", help="encoding of the desired_list file")
     return op
 
 def main():
@@ -518,7 +520,7 @@ def main():
     processor = EventsProcessor(lang=opts.lang, range_=opts.range_,
                                 skip=opts.skip, dump_date=dump, groups=groups,
                                 desired=opts.desired, output_file=out_file)
-
+    processor.encoding = opts.encoding
     ## set desired pages
     processor.set_desired(desired_pages_fn)
     ## main process
