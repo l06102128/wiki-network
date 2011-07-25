@@ -141,7 +141,7 @@ def dumps_checker(dump_name):
     >>> dumps_checker("wikimedia-pages-meta-history")
     """
     import re
-    assert re.search('.-(meta-history)', dump_name), \
+    assert re.search('.-(pages-meta-history)', dump_name), \
            "Wrong dump file, required: *-meta-history"
 
 
