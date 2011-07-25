@@ -86,7 +86,9 @@ class CountriesPageProcessor(HistoryPageProcessor):
             start = self._date.date()
             end = datetime.date.today()
             for dt in rrule(MONTHLY, dtstart=start, until=end):
-                    self.data[dt.strftime("%Y/%m")] = Counter()
+                dt = dt.strftime("%Y/%m")
+                if not dt in self.data:
+                    self.data[dt] = Counter()
 
         self.data[current_date][self._country] += 1
 
