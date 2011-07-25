@@ -49,7 +49,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
         self.csv_writer = csv.DictWriter(f, ["date"] + list(self.countries))
         self.csv_writer.writeheader()
         for date in self.data:
-            to_write = Counter(date=date) #{"date": date}
+            to_write = Counter(date=date)
             to_write.update(dict([(x, 0) for x in self.countries]))
             to_write.update(self.data[date])
             self.csv_writer.writerow(to_write)

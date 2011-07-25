@@ -42,9 +42,8 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
         self.textcleaner = TextCleaner(kwargs["userns"])
         self.queue = []
-        f = open(self.output, 'w')
-        self._keys = ["timestamp", "lang", "title", "type", "text"]
-        self.csv_writer = csv.DictWriter(f, fieldnames=self._keys,
+        fields = ["timestamp", "lang", "title", "type", "text"]
+        self.csv_writer = csv.DictWriter(self.output, fieldnames=fields,
                                          delimiter='\t', quotechar='"',
                                          quoting=csv.QUOTE_ALL)
 
@@ -189,8 +188,9 @@ def main():
     src.close()
     src = deflate(xml)
 
+    out = open(output, 'w')
     processor = HistoryRevisionsPageProcessor(tag=tag, lang=lang,
-                                              output=output,
+                                              output=out,
                                               userns=translation['User'])
     processor.talkns = translation['Talk']
     if opts.type == 'talk':
@@ -203,6 +203,7 @@ def main():
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
     processor.flush()
+    out.close()
 
 
 if __name__ == "__main__":
