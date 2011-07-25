@@ -63,19 +63,33 @@ class CountriesPageProcessor(HistoryPageProcessor):
     def process_ip(self, elem):
         if self._skip:
             return
-        self._country = self.gi.country_name_by_addr(elem.text)
+        try:
+            self._country = self.gi.country_name_by_addr(elem.text)
+        except pygeoip.GeoIPError:
+            logging.warn("Skipping IP %s", elem.text)
         self.countries.add(self._country)
 
     def process_contributor(self, _):
-        if not self.data:  # first insert: populate dict
+        current_date = self._date.strftime("%Y/%m")
+
+        first_date = None  # 2001 date mismatch
+        mismatch = False
+        for date in self.data:
+            first_date = date
+            break
+        if first_date and first_date > current_date:
+            mismatch = True
+            logging.warn("Date mismatch! Fixing... - %s %s", first_date,
+                         current_date)
+
+        if not self.data or mismatch:  # populate dict with all dates
             start = self._date.date()
             end = datetime.date.today()
             for dt in rrule(MONTHLY, dtstart=start, until=end):
                     self.data[dt.strftime("%Y/%m")] = Counter()
 
-        if self._date and self._country:
-            date = self._date.strftime("%Y/%m")
-            self.data[date][self._country] += 1
+        self.data[current_date][self._country] += 1
+
         self._date = None
         self._country = None
 
