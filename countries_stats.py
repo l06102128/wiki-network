@@ -65,7 +65,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
             return
         try:
             self._country = self.gi.country_name_by_addr(elem.text)
-        except:
+        except (pygeoip.GeoIPError, IndexError, KeyError):
             logging.warn("Skipping IP %s", elem.text)
         self.countries.add(self._country)
 
