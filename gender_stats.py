@@ -39,11 +39,12 @@ class GenderPageProcessor(HistoryPageProcessor):
     _gender_edits = None
     _anon_edits = None
     _total_edits = None
+    _started_by = None
 
     def __init__(self, **kwargs):
         super(GenderPageProcessor, self).__init__(**kwargs)
         fields = ["title", "namespace", "redirect", "creation_date",
-                  "nr_anon_edits", "nr_registered_edits",
+                  "started_by", "nr_anon_edits", "nr_registered_edits",
                   "nr_total_edits", "nr_female_edits", "nr_male_edits",
                   "nr_anon_editors", "nr_registered_editors",
                   "nr_total_editors", "nr_female_editors", "nr_male_editors"]
@@ -81,6 +82,7 @@ class GenderPageProcessor(HistoryPageProcessor):
             "namespace": self._namespace.encode("UTF-8"),
             "redirect": 1 if self._redirect else 0,
             "creation_date": self._creation_date,
+            "started_by": self._started_by,
             "nr_anon_edits": len(self._anon_edits),
             "nr_registered_edits": len(self._total_edits),
             "nr_female_edits": len(self._gender_edits["female"]),
@@ -103,7 +105,7 @@ class GenderPageProcessor(HistoryPageProcessor):
 
     def process_title(self, elem):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date",
-                      "_redirect", "_creation_date"))
+                      "_redirect", "_creation_date", "_started_by"))
         self._gender_edits.clear()
         self._gender_edits["female"] = []
         self._gender_edits["male"] = []
@@ -125,6 +127,7 @@ class GenderPageProcessor(HistoryPageProcessor):
         if self._skip:
             return
         user = elem.text
+        gender = "missing"
         if user in self.gender_data:
             gender = self.gender_data[user]
             try:
@@ -132,6 +135,8 @@ class GenderPageProcessor(HistoryPageProcessor):
             except KeyError:
                 self._gender_edits[gender] = [user]
         self._total_edits.append(user)
+        if not self._started_by:
+            self._started_by = gender
 
     def process_ip(self, elem):
         if self._skip:
