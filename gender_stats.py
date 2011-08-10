@@ -27,7 +27,7 @@ from collections import Counter
 
 def perc(x, y):
     try:
-        return round(float(x)/float(y))
+        return round(float(x)/float(y), 3)
     except ZeroDivisionError:
         return 0.0
 
