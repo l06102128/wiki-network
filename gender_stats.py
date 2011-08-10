@@ -194,7 +194,7 @@ def main():
         usage="usage: %prog [options] input_file gender_file output_file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
-    p.add_option('-e', '--editors-number', default=0, dest="min_edits",
+    p.add_option('-e', '--min-edits', default=0, dest="min_edits",
                  metavar="MIN_EDITS", type=int,
                  help="pages with less than MIN_EIDTS edits "
                       "are skipped (default: %(default)s)")
