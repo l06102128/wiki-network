@@ -25,6 +25,12 @@ import logging
 from sonet.timr import Timr
 from collections import Counter
 
+def perc(x, y):
+    try:
+        return round(float(x)/float(y))
+    except ZeroDivisionError:
+        return 0.0
+
 class GenderPageProcessor(HistoryPageProcessor):
     output = None
     csv_writer = None
@@ -45,9 +51,10 @@ class GenderPageProcessor(HistoryPageProcessor):
         super(GenderPageProcessor, self).__init__(**kwargs)
         fields = ["title", "namespace", "redirect", "creation_date",
                   "started_by", "nr_anon_edits", "nr_registered_edits",
-                  "nr_total_edits", "nr_female_edits", "nr_male_edits",
-                  "nr_anon_editors", "nr_registered_editors",
-                  "nr_total_editors", "nr_female_editors", "nr_male_editors"]
+                  "nr_total_edits", "nr_female_edits", "perc_female_edits",
+                  "nr_male_edits", "nr_anon_editors", "nr_registered_editors",
+                  "nr_total_editors", "nr_female_editors",
+                  "perc_female_editors", "nr_male_editors"]
         self.csv_writer = csv.DictWriter(self.output, fields)
         self.csv_writer.writeheader()
         self.gender_data_fn = kwargs["gender_data"]
@@ -92,6 +99,10 @@ class GenderPageProcessor(HistoryPageProcessor):
             "nr_female_editors": len(set(self._gender_edits["female"])),
             "nr_male_editors": len(set(self._gender_edits["male"])),
         }
+        page["perc_female_edits"] = perc(page["nr_female_edits"],
+                                         page["nr_registered_edits"])
+        page["perc_female_editors"] = perc(page["nr_female_editors"],
+                                           page["nr_registered_editors"])
         page["nr_total_edits"] = page["nr_anon_edits"] + \
                                  page["nr_registered_edits"]
         page["nr_total_editors"] = page["nr_anon_editors"] + \
