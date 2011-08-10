@@ -67,9 +67,19 @@ class CountriesPageProcessor(HistoryPageProcessor):
             self._country = self.gi.country_name_by_addr(elem.text)
         except (pygeoip.GeoIPError, IndexError, KeyError):
             logging.warn("Skipping IP %s", elem.text)
-        self.countries.add(self._country)
+        else:
+            if self._country:
+                self.countries.add(self._country)
+            else:
+                logging.warn("Can't find country for IP %s", elem.text)
+                self._country = "Unknown"
+                self.countries.add(self._country)
 
-    def process_contributor(self, _):
+
+    def process_revision(self, _):
+        if not self._country:
+            return
+
         current_date = self._date.strftime("%Y/%m")
 
         first_date = None  # 2001 date mismatch
@@ -150,7 +160,7 @@ def main():
 
     translation = get_translations(src)
     tag = get_tags(src,
-                   tags='page,redirect,timestamp,ip,contributor,title')
+                   tags='page,redirect,timestamp,ip,revision,title')
     src.close()
     src = deflate(xml)
 
