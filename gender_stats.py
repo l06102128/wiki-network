@@ -25,6 +25,12 @@ import logging
 from sonet.timr import Timr
 from collections import Counter
 
+def perc(x, y):
+    try:
+        return round(float(x)/float(y))
+    except ZeroDivisionError:
+        return 0.0
+
 class GenderPageProcessor(HistoryPageProcessor):
     output = None
     csv_writer = None
@@ -32,25 +38,28 @@ class GenderPageProcessor(HistoryPageProcessor):
     gender_data = None
     csv_writer = None
     queue = None
+    min_edits = None
     _skip = None
     _namespace = None
     _redirect = None
     _creation_date = None
     _gender_edits = None
     _anon_edits = None
-    _total_edits = None
+    _user_edits = None
     _started_by = None
 
     def __init__(self, **kwargs):
         super(GenderPageProcessor, self).__init__(**kwargs)
         fields = ["title", "namespace", "redirect", "creation_date",
                   "started_by", "nr_anon_edits", "nr_registered_edits",
-                  "nr_total_edits", "nr_female_edits", "nr_male_edits",
-                  "nr_anon_editors", "nr_registered_editors",
-                  "nr_total_editors", "nr_female_editors", "nr_male_editors"]
+                  "nr_total_edits", "nr_female_edits", "perc_female_edits",
+                  "nr_male_edits", "nr_anon_editors", "nr_registered_editors",
+                  "nr_total_editors", "nr_female_editors",
+                  "perc_female_editors", "nr_male_editors"]
         self.csv_writer = csv.DictWriter(self.output, fields)
         self.csv_writer.writeheader()
         self.gender_data_fn = kwargs["gender_data"]
+        self.min_edits = kwargs["min_edits"]
         self.gender_data = {}
         self.load_gender_data()
 
@@ -58,7 +67,7 @@ class GenderPageProcessor(HistoryPageProcessor):
 
         self._gender_edits = {}
         self._anon_edits = []
-        self._total_edits = []
+        self._user_edits = []
 
     def load_gender_data(self):
         with open(self.gender_data_fn) as f:
@@ -84,19 +93,25 @@ class GenderPageProcessor(HistoryPageProcessor):
             "creation_date": self._creation_date,
             "started_by": self._started_by,
             "nr_anon_edits": len(self._anon_edits),
-            "nr_registered_edits": len(self._total_edits),
+            "nr_registered_edits": len(self._user_edits),
             "nr_female_edits": len(self._gender_edits["female"]),
             "nr_male_edits": len(self._gender_edits["male"]),
             "nr_anon_editors": len(set(self._anon_edits)),
-            "nr_registered_editors": len(set(self._total_edits)),
+            "nr_registered_editors": len(set(self._user_edits)),
             "nr_female_editors": len(set(self._gender_edits["female"])),
             "nr_male_editors": len(set(self._gender_edits["male"])),
         }
+        page["perc_female_edits"] = perc(page["nr_female_edits"],
+                                         page["nr_registered_edits"])
+        page["perc_female_editors"] = perc(page["nr_female_editors"],
+                                           page["nr_registered_editors"])
         page["nr_total_edits"] = page["nr_anon_edits"] + \
                                  page["nr_registered_edits"]
         page["nr_total_editors"] = page["nr_anon_editors"] + \
                                    page["nr_registered_editors"]
-        self.queue.append(page)
+
+        if page["nr_total_edits"] >= self.min_edits:
+            self.queue.append(page)
 
     def process_timestamp(self, elem):
         current_date = elem.text
@@ -109,7 +124,7 @@ class GenderPageProcessor(HistoryPageProcessor):
         self._gender_edits.clear()
         self._gender_edits["female"] = []
         self._gender_edits["male"] = []
-        self._total_edits = []
+        self._user_edits = []
         self._anon_edits = []
 
         a_title = elem.text.split(':')
@@ -134,7 +149,7 @@ class GenderPageProcessor(HistoryPageProcessor):
                 self._gender_edits[gender].append(user)
             except KeyError:
                 self._gender_edits[gender] = [user]
-        self._total_edits.append(user)
+        self._user_edits.append(user)
         if not self._started_by:
             self._started_by = gender
 
@@ -179,6 +194,11 @@ def main():
         usage="usage: %prog [options] input_file gender_file output_file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
+    p.add_option('-e', '--editors-number', default=0, dest="min_edits",
+                 metavar="MIN_EDITS", type=int,
+                 help="pages with less than MIN_EIDTS edits "
+                      "are skipped (default: %(default)s)")
+
     opts, files = p.parse_args()
 
     if len(files) != 3:
@@ -214,7 +234,8 @@ def main():
     processor = GenderPageProcessor(tag=tag, lang=lang,
                                     output=out,
                                     userns=translation['User'],
-                                    gender_data=gender_data
+                                    gender_data=gender_data,
+                                    min_edits=opts.min_edits
                                    )
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
