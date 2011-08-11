@@ -52,8 +52,9 @@ class GenderPageProcessor(HistoryPageProcessor):
         super(GenderPageProcessor, self).__init__(**kwargs)
         fields = ["title", "namespace", "redirect", "creation_date",
                   "started_by", "nr_anon_edits", "nr_registered_edits",
-                  "nr_total_edits", "nr_female_edits", "perc_female_edits",
-                  "nr_male_edits", "nr_anon_editors", "nr_registered_editors",
+                  "nr_gendered_edits", "nr_total_edits", "nr_female_edits",
+                  "perc_female_edits", "nr_male_edits", "nr_anon_editors",
+                  "nr_registered_editors", "nr_gendered_editors",
                   "nr_total_editors", "nr_female_editors",
                   "perc_female_editors", "nr_male_editors"]
         self.csv_writer = csv.DictWriter(self.output, fields)
@@ -101,10 +102,15 @@ class GenderPageProcessor(HistoryPageProcessor):
             "nr_female_editors": len(set(self._gender_edits["female"])),
             "nr_male_editors": len(set(self._gender_edits["male"])),
         }
+
+        page["nr_gendered_edits"] = page["nr_male_edits"] + \
+                                    page["nr_female_edits"]
+        page["nr_gendered_editors"] = page["nr_male_editors"] + \
+                                      page["nr_female_editors"]
         page["perc_female_edits"] = perc(page["nr_female_edits"],
-                                         page["nr_registered_edits"])
+                                         page["nr_gendered_edits"])
         page["perc_female_editors"] = perc(page["nr_female_editors"],
-                                           page["nr_registered_editors"])
+                                           page["nr_gendered_editors"])
         page["nr_total_edits"] = page["nr_anon_edits"] + \
                                  page["nr_registered_edits"]
         page["nr_total_editors"] = page["nr_anon_editors"] + \
@@ -128,7 +134,8 @@ class GenderPageProcessor(HistoryPageProcessor):
         self._anon_edits = []
 
         a_title = elem.text.split(':')
-        if len(a_title) == 1:
+        if len(a_title) == 1 or a_title[0].endswith(" ") or \
+            a_title[1].startswith(" "):
             self._type = 'normal'
             self._title = a_title[0]
             self._namespace = "article"
