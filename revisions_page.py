@@ -23,6 +23,7 @@ import csv
 #import difflib
 import sys
 import logging
+import re
 from sonet.timr import Timr
 
 
@@ -37,6 +38,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
     diff_timeout = 0.5
     clean = None
     textcleaner = None
+    rwords = re.compile(r"[\w']+")
 
     def __init__(self, **kwargs):
         super(HistoryRevisionsPageProcessor, self).__init__(**kwargs)
@@ -68,14 +70,21 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             self._text = ""
         if self.clean:
             self._text = self.textcleaner.clean_all(self._text)
-        page = {'title': smart_str(self._title),
-                'lang': self.lang,
-                'timestamp': self._date,
-                'text': smart_str(_diff_text(self._prev_text,
-                                             self._text,
-                                             timeout=self.diff_timeout)[0]),
-                'type': self._type}
-        self.queue.append(page)
+
+        text_words = len(self.rwords.findall(self._text))
+        prev_words = len(self.rwords.findall(self._prev_text))
+        if text_words < 1000 or text_words <= 2 * prev_words:
+            diff = _diff_text(self._prev_text,
+                              self._text,
+                              timeout=self.diff_timeout)[0]
+            page = {'title': smart_str(self._title),
+                    'lang': self.lang,
+                    'timestamp': self._date,
+                    'text': smart_str(diff),
+                    'type': self._type}
+            self.queue.append(page)
+        else:
+            logging.warn("Revert detected: skipping... (%s)", self._date)
         self._prev_text = self._text
 
     def process_title(self, elem):
