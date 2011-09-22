@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as md
 from datetime import datetime as dt
 from datetime import timedelta
+import time
 import csv
 import numpy as np
 import sys
@@ -38,7 +39,7 @@ def collapse_values(timestamps, values, totals, radius):
              dt(2011, 01, 28, 0, 0), dt(2011, 01, 30, 0, 0), \
              dt(2011, 01, 31, 0, 0)]
     >>> v = [1,2,3,4,5,6,7]
-    >>> tot = [2,3,4,5,6,7, 8]
+    >>> tot = [2,3,4,5,6,7,8]
     >>> collapse_values(t, v, tot, 2)
     ([datetime.datetime(2011, 1, 20, 0, 0), datetime.datetime(2011, 1, 23, 0, 0), datetime.datetime(2011, 1, 28, 0, 0), datetime.datetime(2011, 1, 31, 0, 0)], [3, 7, 5, 13], [5, 9, 6, 15])
     >>> collapse_values(t, v, tot, 4)
@@ -74,6 +75,38 @@ def collapse_values(timestamps, values, totals, radius):
     time.append(curr[-1])
     ser.append(sum(values[i-len(curr):i]))
     tot.append(sum(totals[i-len(curr):i]))
+    return time, ser, tot
+
+def dt_average(timestamps):
+    acc = 0
+    for ts in timestamps:
+        acc += time.mktime(ts.timetuple())
+    return dt.fromtimestamp(acc/len(timestamps))
+
+def smooth_values(timestamps, values, totals, radius):
+    """
+    Sliding window
+
+    >>> t = [dt(2011, 01, 20, 0, 0), dt(2011, 01, 21, 0, 0), \
+             dt(2011, 01, 22, 0, 0), dt(2011, 01, 23, 0, 0), \
+             dt(2011, 01, 28, 0, 0), dt(2011, 01, 30, 0, 0), \
+             dt(2011, 01, 31, 0, 0)]
+    >>> v = [1,2,3,4,5,6,7]
+    >>> tot = [2,3,4,5,6,7,8]
+    >>> smooth_values(t, v, tot, 3)
+    ([datetime.datetime(2011, 1, 20, 0, 0), datetime.datetime(2011, 1, 20, 12, 0), datetime.datetime(2011, 1, 21, 0, 0), datetime.datetime(2011, 1, 22, 0, 0), datetime.datetime(2011, 1, 24, 8, 0), datetime.datetime(2011, 1, 27, 0, 0), datetime.datetime(2011, 1, 29, 16, 0), datetime.datetime(2011, 1, 30, 12, 0), datetime.datetime(2011, 1, 31, 0, 0)], [1, 3, 6, 9, 12, 15, 18, 13, 7], [2, 5, 9, 12, 15, 18, 21, 15, 8])
+    """
+    time = []
+    ser = []
+    tot = []
+    k = radius / 2
+    for i in range(-(radius/2+1), len(timestamps) - (radius/2) + 1):
+        v = i if i > 0 else 0
+        time.append(dt_average(timestamps[v:v+k]))
+        ser.append(sum(values[v:v+k]))
+        tot.append(sum(totals[v:v+k]))
+        if k < radius:
+            k += 1
     return time, ser, tot
 
 def _gen_data(line, id_col, ignorecols, onlycols):
@@ -114,12 +147,16 @@ def main():
                  help="Use percentages instead of absolute value")
     p.add_option('-w', '--window', action="store", dest="window", type=int,
                  help="Collapse days")
-    p.add_option('--exclude-less-than', action="store", dest="excludelessthan", type=int,
+    p.add_option('-S', '--sliding', action="store", dest="smooth", type=int,
+                 help="Sliding window")
+    p.add_option('--exclude-less-than', action="store",
+                 dest="excludelessthan", type=int,
                  help="Exclude lines with totals (or dic if -d option is used) " + \
-		 "smaller than this parameter")
-    p.add_option('--exclude-more-than', action="store", dest="excludemorethan", type=int,
+                      "smaller than this parameter")
+    p.add_option('--exclude-more-than', action="store",
+                 dest="excludemorethan", type=int,
                  help="Exclude lines with totals (or dic if -d option is used) " + \
-		 "greater than this parameter")
+                      "greater than this parameter")
     p.add_option('-s', '--start', action="store",
         dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
         help="Look for revisions starting from this date")
@@ -166,10 +203,10 @@ def main():
         #filter only pages with total (or dic is -d) greater or smaller than X
         if opts.excludemorethan:
             if float(line[tot_index]) > opts.excludemorethan:
-	        continue
+                continue
         if opts.excludelessthan:
             if float(line[tot_index]) < opts.excludelessthan:
-	        continue
+                continue
 
         mat.append([x for x in _gen_data(line, opts.id_col,
                                          ignorecols, onlycols)])
@@ -203,10 +240,14 @@ def main():
                 time, ser, tot = collapse_values(time, ser, tot,
                                                  opts.window)
 
+            if opts.smooth and len(time) and len(ser) and len(tot):
+                time, ser, tot = smooth_values(time, ser, tot,
+                                               opts.smooth)
+
             mean = float(sum(series)) / len(series)
             #rel_mean is the mean for the period [opts.end, opts.start]
-            rel_mean = float(sum(ser)) / len(ser) 
-	
+            rel_mean = float(sum(ser)) / len(ser)
+
             if opts.perc:
                 try:
                     mean = float(sum(series)) / sum(totals)
