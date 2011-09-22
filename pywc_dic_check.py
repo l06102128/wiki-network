@@ -19,12 +19,14 @@ def main():
 
     for k in keywords:
         print "Processing keyword: %s" % k
-        url = "http://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=%s&srnamespace=%s&srprop=&srwhat=text&format=json" % (ns, k)
+        url = "http://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=%s&srnamespace=%s&srprop=&srwhat=text&format=json" % (k, ns)
         result = simplejson.load(urllib.urlopen(url))
         try:
             occurrencies = result["query"]["searchinfo"]["totalhits"]
         except KeyError:
             occurrencies = 0
+        print url
+        print occurrencies
         csv_writer.writerow([k, ns, occurrencies])
 
 if __name__ == "__main__":
