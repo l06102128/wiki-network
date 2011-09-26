@@ -236,13 +236,13 @@ def main():
                    if (not opts.start or timestamps[k] >= opts.start) and \
                       (not opts.end or timestamps[k] <= opts.end)]
 
-            if opts.window and len(time) and len(ser) and len(tot):
-                time, ser, tot = collapse_values(time, ser, tot,
-                                                 opts.window)
-
             if opts.smooth and len(time) and len(ser) and len(tot):
                 time, ser, tot = smooth_values(time, ser, tot,
                                                opts.smooth)
+
+            if opts.window and len(time) and len(ser) and len(tot):
+                time, ser, tot = collapse_values(time, ser, tot,
+                                                 opts.window)
 
             mean = float(sum(series)) / len(series)
             #rel_mean is the mean for the period [opts.end, opts.start]
