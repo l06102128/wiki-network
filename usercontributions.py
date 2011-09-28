@@ -52,7 +52,7 @@ class UserContrib(object):
 
         ## 4 bytes per item on 64bit pc
         ## array of unsigned int, len = 10
-        self.data = array('I', (0,)*10)
+        self.data = array('I', (0,)*11)
 
         ## this can be very large, in this way it uses python bigints.
         ## KEEP THIS OUT OF self.data!!
@@ -60,6 +60,19 @@ class UserContrib(object):
 
         ## we don't define namespace_count here but in inc_namespace() to save
         ## memory
+
+    def get_quartile():
+        n = (self.last_time - self.first_time).days
+        if n < 21:
+            return 0
+        elif n < 226:
+            return 1
+        elif n < 848:
+            return 2
+        elif n < 3426:
+            return 3
+        else:
+            raise ValueError("Invalid quartile!")
 
     @property
     def normal_count(self):
@@ -71,7 +84,9 @@ class UserContrib(object):
     def inc_namespace(self, idx):
         if not hasattr(self, 'namespace_count'):
             ##TODO: maybe attr_len contains unneeded namespace? like key=0
-            self.namespace_count = array('I', (0,)*ATTR_LEN)
+            self.namespace_count = array('I', (0,)*(ATTR_LEN*4))
+        quartile = self.get_quartile()
+        idx = quartile + idx*4
         self.namespace_count[idx] += 1
 
     @property
@@ -225,6 +240,8 @@ class ContribDict(dict):
         iterator = self.iteritems()
         step = 100000
         for _ in xrange(0, len(self), step):
+            print "lol"
+            #print d.namespace_count.tolist()
             data = [{'username': user,
                      'lang': lang,
                      'normal_edits': d.normal_count,
@@ -251,7 +268,7 @@ def use_contrib_dict(receiver, namespaces, lang):
 
     while 1:
         rev = receiver.recv()
-
+        print rev
         try:
             cd.append(*rev)
         except TypeError:
@@ -319,18 +336,41 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
     _skip_revision = False
     _sender = None
     _minor = False
+    _username = None
+    _id = None
 
     def process_title(self, elem):
         self._title = elem.text
+        print self._title
+        self._id = None
+        self._username = None
 
     def process_timestamp(self, elem):
         if self._skip_revision: return
 
         self._time = elem.text
 
+        # Used only because there are two id tags. We're intrested in the
+        # id child of contributor. As timestamp is before contributor is good
+        # to clear self._id, self._username now.
+        self._id = None
+        self._username = None
+
     def process_contributor(self, contributor):
         if self._skip_revision: return
 
+        # contributor.find(self.tag['username']) is always None
+        # don't know why. Creating process_username, process_id
+        if contributor is None:
+            self._skip_revision = True
+        self._sender = self._username or self._id or None
+        self._id = None
+        self._username = None
+
+        if not self._sender:
+            self._skip_revision = True
+
+        """
         if contributor is None:
             logging.warning('contributor is None')
             self._skip_revision = True
@@ -340,13 +380,26 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
             self._skip_revision = True
         else:
             try:
+                print sender_tag.tail, sender_tag.tag, sender_tag.keys()
                 self._sender = mwlib.normalize_pagename(sender_tag.text)
             except AttributeError:
                 ## if username is defined but empty, look for id tag
                 self._sender = contributor.find(self.tag['id']).text
 
         if self._sender is None:
+            logging.warn("self._sender is None")
             self._skip_revision = True
+        """
+
+    def process_username(self, elem):
+        if self._skip_revision:
+            return
+        self._username = elem.text
+
+    def process_id(self, elem):
+        if self._skip_revision:
+            return
+        self._id = elem.text
 
     def process_comment(self, elem):
         if self._skip_revision or not elem.text:
@@ -366,11 +419,12 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
         assert self._sender is not None, "Sender still not defined"
         assert self._title is not None, "Page title not defined"
         assert self._time is not None, "time not defined"
-
         self.sender.send((self._sender, self._title, self._time,
-                comment, minor))
+                          comment, minor))
 
         self._sender = None
+        self._id = None
+        self._username = None
 
     def process_page(self, _):
         if self._skip:
