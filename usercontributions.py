@@ -28,6 +28,7 @@ from array import array
 from datetime import datetime
 import urllib
 import simplejson
+from django.utils.encoding import smart_str
 
 ## PROJECT LIBS
 import sonet.mediawiki as mwlib
@@ -100,14 +101,19 @@ class UserContrib(object):
             options = {
                 'action': 'query',
                 'list': 'usercontribs',
-                'ucuser': self.user,
+                'ucuser': smart_str(self.user),
                 'ucdir': 'newer',
                 'uclimit': 1,
+                'format': 'json'
             }
             url = api_base + '?' + urllib.urlencode(options)
             result = simplejson.load(urllib.urlopen(url))
-            dtime =  mwlib.ts2dt(result["query"]["usercontribs"]["timestamp"])
-            self.data[7] =  int(time.mktime(dtime.timetuple()))
+            try:
+                dtime =  mwlib.ts2dt(result["query"]["usercontribs"][0]["timestamp"])
+                self.data[7] =  int(time.mktime(dtime.timetuple()))
+            except IndexError:
+                logging.warn("Error while fetching firstedit %s", url)
+                self.data[7] = self.current_time
         return datetime.fromtimestamp(self.data[7])
 
     @property
@@ -117,8 +123,8 @@ class UserContrib(object):
     def time(self, time_):
         epoch = int(time.mktime(time_.timetuple()))
         self.current_time = epoch
-        if self.data[7] == 0 or self.data[7] > epoch:
-            self.data[7] = epoch
+        #if self.data[7] == 0 or self.data[7] > epoch:
+        #    self.data[7] = epoch
         if self.data[8] == 0 or self.data[8] < epoch:
             self.data[8] = epoch
 
@@ -374,6 +380,10 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
         self._id = None
         self._username = None
 
+        revision_time = mwlib.ts2dt(elem.text)
+        if (self.time_end and revision_time > self.time_end):
+            self._skip_revision = True
+
     def process_contributor(self, contributor):
         if self._skip_revision: return
 
@@ -473,9 +483,9 @@ def opt_parse():
     #p.add_option('-s', '--start', action="store",
     #    dest='start', type="yyyymmdd", metavar="YYYYMMDD", default=None,
     #    help="Look for revisions starting from this date")
-    #p.add_option('-e', '--end', action="store",
-    #    dest='end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
-    #    help="Look for revisions until this date")
+    p.add_option('-e', '--end', action="store",
+        dest='end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
+        help="Look for revisions until this date")
     opts, args = p.parse_args()
 
     ## CHECK IF OPTIONS ARE OK
@@ -494,7 +504,7 @@ def main():
 
     receiver, sender = Pipe(duplex=False)
 
-    _, args = opt_parse()
+    opts, args = opt_parse()
     xml = args[0]
 
     ## SET UP FOR PROCESSING
@@ -520,6 +530,7 @@ def main():
     processor = UserContributionsPageProcessor(tag=tag, lang=lang)
     processor.sender = sender
     processor.namespaces = namespaces
+    processor.time_end = opts.end
     ##TODO: only works on it.wikipedia.org! :-)
     processor.welcome_pattern = r'Benvenut'
 
