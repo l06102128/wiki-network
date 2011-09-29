@@ -26,6 +26,8 @@ except ImportError:
 import time
 from array import array
 from datetime import datetime
+import urllib
+import simplejson
 
 ## PROJECT LIBS
 import sonet.mediawiki as mwlib
@@ -42,7 +44,8 @@ from wbin import serialize
 ATTR_LEN = None
 
 class UserContrib(object):
-    __slots__ = ['comments_length', 'namespace_count', 'data']
+    __slots__ = ['comments_length', 'namespace_count', 'data',
+                 "current_time", "lang", "user"]
 
     def __init__(self):
         ##self.namespace_count = np.zeros((attr_len,), dtype=np.int)
@@ -61,8 +64,9 @@ class UserContrib(object):
         ## we don't define namespace_count here but in inc_namespace() to save
         ## memory
 
-    def get_quartile():
-        n = (self.last_time - self.first_time).days
+    def get_quartile(self):
+        current = datetime.fromtimestamp(self.current_time)
+        n = (current - self.first_time).days
         if n < 21:
             return 0
         elif n < 226:
@@ -83,14 +87,27 @@ class UserContrib(object):
 
     def inc_namespace(self, idx):
         if not hasattr(self, 'namespace_count'):
-            ##TODO: maybe attr_len contains unneeded namespace? like key=0
             self.namespace_count = array('I', (0,)*(ATTR_LEN*4))
         quartile = self.get_quartile()
         idx = quartile + idx*4
         self.namespace_count[idx] += 1
+        return self.namespace_count
 
     @property
     def first_time(self):
+        if self.data[7] == 0:
+            api_base = 'http://%s.wikipedia.org/w/api.php' % self.lang
+            options = {
+                'action': 'query',
+                'list': 'usercontribs',
+                'ucuser': self.user,
+                'ucdir': 'newer',
+                'uclimit': 1,
+            }
+            url = api_base + '?' + urllib.urlencode(options)
+            result = simplejson.load(urllib.urlopen(url))
+            dtime =  mwlib.ts2dt(result["query"]["usercontribs"]["timestamp"])
+            self.data[7] =  int(time.mktime(dtime.timetuple()))
         return datetime.fromtimestamp(self.data[7])
 
     @property
@@ -99,6 +116,7 @@ class UserContrib(object):
 
     def time(self, time_):
         epoch = int(time.mktime(time_.timetuple()))
+        self.current_time = epoch
         if self.data[7] == 0 or self.data[7] > epoch:
             self.data[7] = epoch
         if self.data[8] == 0 or self.data[8] < epoch:
@@ -164,7 +182,7 @@ class UserContrib(object):
 
 
 class ContribDict(dict):
-    def __init__(self, namespaces):
+    def __init__(self, namespaces, lang):
         global ATTR_LEN
         super(ContribDict, self).__init__()
         self._namespaces = namespaces
@@ -182,6 +200,7 @@ class ContribDict(dict):
 
         contributions, self.connection = get_contributions_table()
         self.insert = contributions.insert()
+        self.lang = lang
 
     #----------------------------------------------------------------------
     def append(self, user, page_title, timestamp, comment, minor):
@@ -190,16 +209,6 @@ class ContribDict(dict):
         except KeyError:
             contrib = UserContrib()
             self[user] = contrib
-
-        ## Namespace
-        a_title = page_title.split(':')
-        if len(a_title) == 1:
-            contrib.inc_normal()
-        else:
-            try:
-                contrib.inc_namespace(self._d_namespaces[a_title[0]])
-            except KeyError:
-                contrib.inc_normal()
 
         year = int(timestamp[:4])
         month = int(timestamp[5:7])
@@ -211,6 +220,19 @@ class ContribDict(dict):
         timestamp = datetime(year, month, day, hour, minutes, seconds)
         ## Time
         contrib.time(timestamp)
+        contrib.lang = self.lang
+        contrib.user = user
+        ## Namespace
+        a_title = page_title.split(':')
+        if len(a_title) == 1:
+            contrib.inc_normal()
+            contrib.inc_namespace(0)
+        else:
+            try:
+                contrib.inc_namespace(self._d_namespaces[a_title[0]])
+            except KeyError:
+                contrib.inc_namespace(0)
+                contrib.inc_normal()
 
         ## Minor
         if minor:
@@ -240,8 +262,6 @@ class ContribDict(dict):
         iterator = self.iteritems()
         step = 100000
         for _ in xrange(0, len(self), step):
-            print "lol"
-            #print d.namespace_count.tolist()
             data = [{'username': user,
                      'lang': lang,
                      'normal_edits': d.normal_count,
@@ -264,11 +284,10 @@ class ContribDict(dict):
 
 
 def use_contrib_dict(receiver, namespaces, lang):
-    cd = ContribDict(namespaces)
+    cd = ContribDict(namespaces, lang)
 
     while 1:
         rev = receiver.recv()
-        print rev
         try:
             cd.append(*rev)
         except TypeError:
@@ -315,7 +334,7 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
     @namespaces.setter
     def namespaces(self, namespaces):
         self.__namespaces = namespaces
-        self.contribution = ContribDict(namespaces)
+        self.contribution = ContribDict(namespaces, self.lang)
 
     @property
     def welcome_pattern(self):
@@ -341,7 +360,6 @@ class UserContributionsPageProcessor(mwlib.PageProcessor):
 
     def process_title(self, elem):
         self._title = elem.text
-        print self._title
         self._id = None
         self._username = None
 
@@ -493,7 +511,7 @@ def main():
         tags='page,title,revision,timestamp,contributor,username,ip'+ \
              ',comment,id,minor')
 
-    namespaces = mwlib.get_namespaces(src)
+    namespaces = [(0, "Normal")]+mwlib.get_namespaces(src)
 
     src.close()
     logging.info("BEGIN PARSING")
