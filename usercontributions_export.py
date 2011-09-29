@@ -142,7 +142,13 @@ def main():
     else:
         src = deflate(xml)
 
-    namespaces = [v for _, v in mwlib.get_namespaces(src)]
+    tmp = ["Normal"]+[v for _, (_, v) in enumerate(mwlib.get_namespaces(src))]
+    namespaces = []
+    # fix for quartiles
+    for ns in tmp:
+        for n in range(1, 5):
+            namespaces.append("%s_%d" % (ns, n))
+    print namespaces
 
     fout = BZ2File(out, 'w')
 
