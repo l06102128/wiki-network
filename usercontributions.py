@@ -46,7 +46,7 @@ ATTR_LEN = None
 
 class UserContrib(object):
     __slots__ = ['comments_length', 'namespace_count', 'data',
-                 "current_time", "lang", "user"]
+                 "current_time", "lang", "user", "deleted"]
 
     def __init__(self):
         ##self.namespace_count = np.zeros((attr_len,), dtype=np.int)
@@ -62,12 +62,17 @@ class UserContrib(object):
         ## KEEP THIS OUT OF self.data!!
         self.comments_length = 0
 
+        self.deleted = False
         ## we don't define namespace_count here but in inc_namespace() to save
         ## memory
 
     def get_quartile(self):
         current = datetime.fromtimestamp(self.current_time)
         n = (current - self.first_time).days
+        if self.deleted:
+            logging.warn("%s deleted, setting everything to 0",
+                         self.user)
+            return None
         if n < 21:
             return 0
         elif n < 226:
@@ -90,8 +95,9 @@ class UserContrib(object):
         if not hasattr(self, 'namespace_count'):
             self.namespace_count = array('I', (0,)*(ATTR_LEN*4))
         quartile = self.get_quartile()
-        idx = quartile + idx*4
-        self.namespace_count[idx] += 1
+        if quartile is not None:
+            idx = quartile + idx*4
+            self.namespace_count[idx] += 1
         return self.namespace_count
 
     @property
@@ -111,9 +117,10 @@ class UserContrib(object):
             try:
                 dtime =  mwlib.ts2dt(result["query"]["usercontribs"][0]["timestamp"])
                 self.data[7] =  int(time.mktime(dtime.timetuple()))
-            except IndexError:
+            except (IndexError, KeyError):
                 logging.warn("Error while fetching firstedit %s", url)
                 self.data[7] = self.current_time
+                self.deleted = True
         return datetime.fromtimestamp(self.data[7])
 
     @property
