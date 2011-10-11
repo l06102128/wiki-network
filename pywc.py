@@ -186,6 +186,7 @@ class PyWC:
         (self.keywords). For every regex that matches, it
         increments every category they belong to in self._result
         """
+        """
         cat = []
         for regex in self.keywords:
             if regex.search(word):
@@ -217,12 +218,13 @@ class PyWC:
                 self._results[c] += 1
             except KeyError:
                 logging.warn("Invalid category id %s", c)
-        if len(word) > 6:  # Increment word > 6 letters counter
-            self._sixltr += 1
         if len(cat) > 0:  # Increment word in dictionary counter
             self._dic += 1
+        """
+        if len(word) > 6:  # Increment word > 6 letters counter
+            self._sixltr += 1
         self._total += 1
-        self._prev_cat = cat
+        #self._prev_cat = cat
         self._unique.add(word)
 
     def parse_col(self, col):
@@ -254,12 +256,28 @@ class PyWC:
         # create a list of words (_no_ numbers)
         words = [word for word in self.rwords.findall(self._text) \
                  if not word.isdigit()]
+
         for i, word in enumerate(words):
             try:
                 self._next_word = words[i+1]
             except IndexError:
                 self._next_word = ""
             self.parse_word(word)
+
+        for regex in self.keywords:
+            cat = []
+            occ = len(regex.findall(self._text))
+            if occ:
+                for i in self.keywords[regex]:
+                    if i:
+                        cat.append(i)
+            for c in cat:
+                try:
+                    self._results[c] += 1
+                except KeyError:
+                    logging.warn("Invalid category id %s", c)
+            self._dic += occ
+
         self.save()
 
     def parse_line(self, line):
