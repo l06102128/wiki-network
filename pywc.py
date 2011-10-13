@@ -118,12 +118,12 @@ class PyWC:
                 # bad -> ^bad$ matches "bad" but not "badass"
                 # bad* -> ^bad matches "bad" and "badass"
                 if not self.dic_regex:
-                    line[0] = "".join(["^", line[0]])
+                    line[0] = "".join(["\\b", line[0]])
                     try:
                         if (line[0][-1] == "*"):
                             line[0] = line[0][:-1]
                         else:
-                            line[0] = "".join([line[0], "$"])
+                            line[0] = "".join([line[0], "\\b"])
                     except IndexError:
                         continue
                 yield (re.compile(line[0], re.IGNORECASE), line[1:])
@@ -265,17 +265,14 @@ class PyWC:
             self.parse_word(word)
 
         for regex in self.keywords:
-            cat = []
             occ = len(regex.findall(self._text))
             if occ:
-                for i in self.keywords[regex]:
-                    if i:
-                        cat.append(i)
-            for c in cat:
-                try:
-                    self._results[c] += 1
-                except KeyError:
-                    logging.warn("Invalid category id %s", c)
+                for cat in self.keywords[regex]:
+                    if cat:
+                        try:
+                            self._results[cat] += occ
+                        except KeyError:
+                            logging.warn("Invalid category id %s", cat)
             self._dic += occ
 
         self.save()
