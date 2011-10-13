@@ -22,7 +22,6 @@ import logging
 from sonet.timr import Timr
 from revisions_page import HistoryRevisionsPageProcessor, dumps_checker
 from pywc import PyWC
-from collections import Counter
 import csv
 
 class PyWC(PyWC):
@@ -87,20 +86,19 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
                 tmp[x] = self.pywc._results[x]
 
             if not current.has_key(date_str):
-                current[date_str] = self.pywc._results
+                current[date_str] = tmp
             else:
                 for elem in tmp:
                     if elem != "date":
                         current[date_str][elem] += tmp[elem]
             del tmp
-
         else:
             logging.warn("Revert detected: skipping... (%s)", self._date)
         self._prev_text = self._text
 
     def flush(self):
         for line in self.data:
-            for date in self.data[line]:
+            for date in sorted(self.data[line]):
                 tmp = {"ns": line, "date": date}
                 tmp.update(self.data[line][date])
                 self.pywc.csv_writer.writerow(tmp)
@@ -124,8 +122,8 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         if len(a_title) == 1:
             self._type = "Normal"
         else:
-            self._type = a_title[0] if a_title in self.namespaces else "Normal"
-
+            self._type = a_title[0] if a_title[0] in self.namespaces \
+                                    else "Normal"
 
 def main():
     import optparse
