@@ -171,7 +171,7 @@ def main():
 
     translation = get_translations(src)
     tag = get_tags(src, tags='page,title,revision,timestamp,text,redirect')
-    namespaces = [(0, "Normal")]+mwlib.get_namespaces(src)
+    namespaces = [x[1] for x in [(0, "Normal")] + mwlib.get_namespaces(src)]
     src.close()
     src = deflate(xml)
 
