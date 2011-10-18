@@ -57,6 +57,7 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         super(PyWCProcessor, self).__init__(**kwargs)
         self.dic = kwargs["dic"]
         self.pywc = PyWC(self.dic, self.output)
+        self.pywc.tuning = True
         self.data = {}
 
     def save(self):

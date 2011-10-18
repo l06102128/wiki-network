@@ -32,6 +32,7 @@ from sonet.timr import Timr
 from sonet.mediawiki import TextCleaner
 from collections import Counter
 
+
 def perc(x, tot, perc):
     if perc:
         try:
@@ -62,6 +63,8 @@ class PyWC:
     clean_wiki = None        # Clean wiki syntax
     clean_html = None        # Clean HTML
     percentage = False       # Output as percentage
+    tuning = False           # Set tuning mode (no conditional
+                             # dictionary but a lot faster!)
 
     rwords = re.compile(r"[\w']+")
     rqmarks = re.compile(r"\?")
@@ -186,45 +189,45 @@ class PyWC:
         (self.keywords). For every regex that matches, it
         increments every category they belong to in self._result
         """
-        """
-        cat = []
-        for regex in self.keywords:
-            if regex.search(word):
-                for i in self.keywords[regex]:
-                    res = self.cond_exp_regex[0].match(i)
-                    if res:
-                        if self._next_word == res.group(1):
-                            cat.append(res.group(2))
-                        elif res.group(4):
-                            cat.append(res.group(4))
-                        continue
+        if not self.tuning:
+            cat = []
+            for regex in self.keywords:
+                if regex.search(word):
+                    for i in self.keywords[regex]:
+                        res = self.cond_exp_regex[0].match(i)
+                        if res:
+                            if self._next_word == res.group(1):
+                                cat.append(res.group(2))
+                            elif res.group(4):
+                                cat.append(res.group(4))
+                            continue
 
-                    res = self.cond_exp_regex[1].match(i)
-                    if res:
-                        if True in [c in self._prev_cat \
-                                    for c in res.group(1).split(" ")]:
-                            cat.append(res.group(2))
-                        elif res.group(4):
-                            cat.append(res.group(4))
-                        continue
+                        res = self.cond_exp_regex[1].match(i)
+                        if res:
+                            if True in [c in self._prev_cat \
+                                        for c in res.group(1).split(" ")]:
+                                cat.append(res.group(2))
+                            elif res.group(4):
+                                cat.append(res.group(4))
+                            continue
 
-                    # If dictionary contains trailing tabs,
-                    # '' keys are saved. It skips them.
-                    if i:
-                        cat.append(i)
+                        # If dictionary contains trailing tabs,
+                        # '' keys are saved. It skips them.
+                        if i:
+                            cat.append(i)
 
-        for c in cat:
-            try:
-                self._results[c] += 1
-            except KeyError:
-                logging.warn("Invalid category id %s", c)
-        if len(cat) > 0:  # Increment word in dictionary counter
-            self._dic += 1
-        """
+            for c in cat:
+                try:
+                    self._results[c] += 1
+                except KeyError:
+                    logging.warn("Invalid category id %s", c)
+            if len(cat) > 0:  # Increment word in dictionary counter
+                self._dic += 1
+            self._prev_cat = cat
+
         if len(word) > 6:  # Increment word > 6 letters counter
             self._sixltr += 1
         self._total += 1
-        #self._prev_cat = cat
         self._unique.add(word)
 
     def parse_col(self, col):
@@ -264,16 +267,17 @@ class PyWC:
                 self._next_word = ""
             self.parse_word(word)
 
-        for regex in self.keywords:
-            occ = len(regex.findall(self._text))
-            if occ:
-                for cat in self.keywords[regex]:
-                    if cat:
-                        try:
-                            self._results[cat] += occ
-                        except KeyError:
-                            logging.warn("Invalid category id %s", cat)
-            self._dic += occ
+        if self.tuning:
+            for regex in self.keywords:
+                occ = len(regex.findall(self._text))
+                if occ:
+                    for cat in self.keywords[regex]:
+                        if cat:
+                            try:
+                                self._results[cat] += occ
+                            except KeyError:
+                                logging.warn("Invalid category id %s", cat)
+                self._dic += occ
 
         self.save()
 
