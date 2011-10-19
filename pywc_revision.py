@@ -64,7 +64,9 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         if self._text is None: # difflib doesn't like NoneType
             self._text = ""
         if self.clean:
-            self._text = self.textcleaner.clean_all(self._text)
+            self._text = self.textcleaner.clean_wiki_syntax(self._text)
+            self._text = self.textcleaner.clean_html(self._text)
+            self._text = self.textcleaner.clean_text(self._text)
         text_words = len(self.rwords.findall(self._text))
         prev_words = len(self.rwords.findall(self._prev_text))
         if text_words < 1000 or text_words <= 2 * prev_words:
