@@ -35,7 +35,8 @@ class PyWC(PyWC):
             cat_names = [str(x[0]) for x in sorted(self.categories.items())]
 
         self._keys = ["date", "ns"] + cat_names + ["qmarks", "unique", "dic",
-                                                   "sixltr", "total", "text"]
+                                                   "sixltr", "total", "text",
+                                                   "edits"]
 
         self.csv_writer = csv.DictWriter(self.csv_out,
                                          delimiter=self.delimiter,
@@ -52,6 +53,7 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
     namespaces = None
     data = None
     dic = None
+    edit_counter = 0
 
     def __init__(self, **kwargs):
         super(PyWCProcessor, self).__init__(**kwargs)
@@ -77,12 +79,14 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
             current = self.data[self._type]
             date = mwlib.ts2dt(self._date)
             date_str = date.strftime("%Y/%m/%d")
+            self.edit_counter += 1
             tmp = {"date": date_str,
                    "qmarks": self.pywc._qmarks,
                    "unique": len(self.pywc._unique),
                    "dic": self.pywc._dic,
                    "sixltr": self.pywc._sixltr,
-                   "total": self.pywc._total}
+                   "total": self.pywc._total,
+                   "edits": self.edit_counter}
             for x in self.pywc.categories:
                 tmp[x] = self.pywc._results[x]
 
