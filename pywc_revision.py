@@ -23,6 +23,8 @@ from sonet.timr import Timr
 from revisions_page import HistoryRevisionsPageProcessor, dumps_checker
 from pywc import PyWC
 import csv
+from django.utils.encoding import smart_str
+
 
 class PyWC(PyWC):
     def __init__(self, dic, output):
@@ -53,7 +55,6 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
     namespaces = None
     data = None
     dic = None
-    edit_counter = 0
 
     def __init__(self, **kwargs):
         super(PyWCProcessor, self).__init__(**kwargs)
@@ -79,23 +80,23 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
             current = self.data[self._type]
             date = mwlib.ts2dt(self._date)
             date_str = date.strftime("%Y/%m/%d")
-            self.edit_counter += 1
             tmp = {"date": date_str,
                    "qmarks": self.pywc._qmarks,
                    "unique": len(self.pywc._unique),
                    "dic": self.pywc._dic,
                    "sixltr": self.pywc._sixltr,
-                   "total": self.pywc._total,
-                   "edits": self.edit_counter}
+                   "total": self.pywc._total}
             for x in self.pywc.categories:
                 tmp[x] = self.pywc._results[x]
 
             if not current.has_key(date_str):
                 current[date_str] = tmp
+                current[date_str]["edits"] = 1
             else:
                 for elem in tmp:
                     if elem != "date":
                         current[date_str][elem] += tmp[elem]
+                current[date_str]["edits"] += 1
             del tmp
         else:
             logging.warn("Revert detected: skipping... (%s)", self._date)
@@ -123,6 +124,7 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         self.delattr(("_counter", "_type", "_title", "_skip", "_date", "text"))
         self._skip = False
         print elem.text
+        elem.text = smart_str(elem.text)
         a_title = elem.text.split(':')
         if len(a_title) == 1:
             self._type = "Normal"
