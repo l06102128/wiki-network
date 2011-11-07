@@ -13,12 +13,10 @@
 #                                                                        #
 ##########################################################################
 
-from datetime import datetime
 import os
 import sys
 import re
 import logging
-import gc
 
 ## UTILS
 from django.utils.encoding import smart_str
@@ -166,8 +164,6 @@ class HistoryPageProcessor(mwlib.PageProcessor):
         if self.count % 500 == 0:
             logging.info("Counter: %d", self.count)
             print os.popen("ps v %d|awk '{print $8}'|tail -1" % os.getpid()).readline()
-        if self.count % 2000 == 0:
-            gc.collect()
 
     def delattr(self, attrs):
         for attr in attrs:
@@ -320,6 +316,4 @@ def main():
         save_graph(g, lang, type_, date_)
 
 if __name__ == "__main__":
-    #import cProfile as profile
-    #profile.run('main()', 'mainprof')
     main()
