@@ -6,12 +6,14 @@ from collections import Counter
 
 def main():
     output_file = sys.argv[2]
+    input_dir = sys.argv[1]
     output_data = {}
     fieldnames = None
-    for filename in os.listdir(sys.argv[1]):
+    for filename in os.listdir(input_dir):
         if not filename.endswith(".csv"):
             continue
-        current_file = csv.DictReader(open(filename), delimiter="\t")
+        current_file = csv.DictReader(open(os.path.join(input_dir, filename)),
+                                      delimiter="\t")
         fieldnames = current_file.fieldnames
         for line in current_file:
             date = line["date"]
