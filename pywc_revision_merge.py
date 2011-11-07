@@ -11,19 +11,27 @@ def main():
     for filename in os.listdir(sys.argv[1]):
         if not filename.endswith(".csv"):
             continue
-        current_file = csv.DictReader(open(filename))
+        current_file = csv.DictReader(open(filename), delimiter="\t")
         fieldnames = current_file.fieldnames
         for line in current_file:
-            if not line["date"] in output_data:
-                output_data[line["date"]] = Counter()
+            date = line["date"]
+            ns = line["ns"]
+            if not ns in output_data:
+                output_data[ns] = {}
+            if not date in output_data[ns]:
+                output_data[ns][date] = Counter()
             for key in line:
-                if key != "date":
-                    output_data[line["date"]][key] += line[key]
-    out = csv.DictWriter(open(output_file, "w"), fieldnames=fieldnames)
-    for date in output_data:
-        row = output_data[date]
-        row["date"] = date
-        out.writerow(row)
+                if line[key].isdigit():
+                    output_data[ns][date][key] += int(line[key])
+    out = csv.DictWriter(open(output_file, "w"), fieldnames=fieldnames,
+                         delimiter="\t")
+    out.writeheader()
+    for ns in sorted(output_data):
+        for date in sorted(output_data[ns]):
+            row = output_data[ns][date]
+            row["date"] = date
+            row["ns"] = ns
+            out.writerow(row)
 
 
 if __name__ == "__main__":
