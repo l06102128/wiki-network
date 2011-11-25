@@ -152,10 +152,10 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self.count += 1
         if not self.count % 1000:
             logging.info(' ### Processed %d pages', self.count)
+            if not self._skip:
+                with Timr('Flushing %s' % self._title):
+                    self.flush()
         self.delattr(("text"))
-        if not self._skip:
-            with Timr('Flushing %s' % self._title):
-                self.flush()
         self._skip = False
 
     def process_redirect(self, _):
