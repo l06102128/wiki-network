@@ -189,7 +189,7 @@ def main():
                  help="Cleans HTML, wiki syntax, acronyms and emoticons")
     opts, files = p.parse_args()
 
-    if len(files) != 3:
+    if len(files) != 2:
         p.error("Wrong parameters")
     if opts.verbose:
         logging.basicConfig(stream=sys.stderr,
