@@ -118,9 +118,11 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self._skip = False
         a_title = elem.text.split(':')
 
-        if len(a_title) == 2 and (a_title[0] == self.talkns or \
-                                  a_title[0] == self.usertalkns):
+        if len(a_title) == 2 and a_title[0] == self.talkns:
             self._type = 'talk'
+            self._title = a_title[1]
+        elif len(a_title) == 2 and a_title[0] == self.usertalkns:
+            self._type = 'user talk'
             self._title = a_title[1]
         elif len(a_title) == 1:
             self._type = 'normal'
@@ -129,11 +131,10 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
             self._skip = True
 
         if not self._skip:
-            self._desired = self.is_desired(self._title)
-            if not (self._desired and self._type == "talk"):
+            if not ("talk" in self._type):
                 self._skip = True
             else:
-                logging.info('Start processing desired page %s (%s)',
+                logging.info('Start processing page %s (%s)',
                              self._title, self._type)
 
     def process_timestamp(self, elem):
@@ -158,11 +159,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         self._skip = False
 
     def process_redirect(self, _):
-        # This class only considers pages that are in the desired file,
-        # these pages must not be redirects
         self._skip = True
-        raise ValueError("The page %s is a redirect. " % self._title + \
-                         "Pages in the desired list must not be redirects.")
 
 
 def dumps_checker(dump_name):
@@ -182,9 +179,7 @@ def dumps_checker(dump_name):
 def main():
     import optparse
     p = optparse.OptionParser(
-        usage="usage: %prog [options] input_file desired_list output_file")
-    p.add_option('-e', '--encoding', action="store", dest="encoding",
-                 default="latin-1", help="encoding of the desired_list file")
+        usage="usage: %prog [options] input_file output_file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
     p.add_option('-T', "--timeout", action="store", dest="timeout", type=float,
@@ -203,8 +198,7 @@ def main():
                             datefmt='%Y-%m-%d %H:%M:%S')
 
     xml = files[0]
-    desired_pages_fn = files[1]
-    output = files[2]
+    output = files[1]
 
     dumps_checker(xml)
 
@@ -230,7 +224,6 @@ def main():
     processor.usertalkns = translation['User talk']
     processor.diff_timeout = opts.timeout
     processor.clean = opts.clean
-    processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
     processor.flush()
