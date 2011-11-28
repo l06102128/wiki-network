@@ -50,7 +50,9 @@ def write_to_file(csv_writer, line, columns):
     else:
         result = []
         for c in columns.split(","):
-            result.append(line[int(c)])
+            c = int(c)
+            if line[c]:
+                result.append(line[c])
         csv_writer.writerow(result)
 
 
