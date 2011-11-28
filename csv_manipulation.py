@@ -51,8 +51,9 @@ def write_to_file(csv_writer, line, columns):
         result = []
         for c in columns.split(","):
             c = int(c)
-            if line[c]:
-                result.append(line[c])
+            if not line[c]:
+                return
+            result.append(line[c])
         csv_writer.writerow(result)
 
 
