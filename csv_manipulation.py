@@ -26,8 +26,10 @@ import re
 
 RWORDS = re.compile(r"\S+")
 
+
 def words(text):
     return [word for word in RWORDS.findall(text)]
+
 
 def get_stats(opts, files):
     csv_reader = csv.reader(open(files[0], 'r'),
@@ -40,6 +42,17 @@ def get_stats(opts, files):
         pages.add((line[2], line[3]))
         counter += 1
     return {"pages": pages, "lines": counter}
+
+
+def write_to_file(csv_writer, line, columns):
+    if not columns:
+        csv_writer.writerow(line)
+    else:
+        result = []
+        for c in columns.split(","):
+            result.append(line[int(c)])
+        csv_writer.writerow(result)
+
 
 def extract_page(opts, files, output=stdout):
     # CSV handlers
@@ -59,7 +72,7 @@ def extract_page(opts, files, output=stdout):
         if k < opts.start_line:
             continue
         if opts.header and k == 0:
-            csv_writer.writerow(line)
+            write_to_file(csv_writer, line, opts.columns)
             continue
         if opts.lines is not None and i >= opts.lines:
             break
@@ -82,7 +95,7 @@ def extract_page(opts, files, output=stdout):
                     #print "ADD WORD", queue[-1], len_queue+counter
                     if len_queue + counter >= opts.words_window:
                         #print "FLUSH QUEUE"
-                        csv_writer.writerow(queue)
+                        write_to_file(csv_writer, queue, opts.columns)
                         queue = line[:]
                         queue[-1] = ""
                         len_queue = 0
@@ -90,9 +103,10 @@ def extract_page(opts, files, output=stdout):
                 if len_queue == 0 and counter == 0:
                     queue = None
             else:
-                csv_writer.writerow(line)
+                write_to_file(csv_writer, line, opts.columns)
     if queue:
-        csv_writer.writerow(queue)
+        write_to_file(csv_writer, queue, opts.columns)
+
 
 def main():
     import optparse
@@ -101,6 +115,8 @@ def main():
     # Parameters
     p = optparse.OptionParser(usage="usage: %prog [options] file",
                               option_class=SonetOption)
+    p.add_option('-c', '--columns', action="store", dest="columns",
+                 help="Columns to output")
     p.add_option('-d', '--delimiter', action="store", dest="delimiter",
                  default="\t", help="CSV delimiter")
     p.add_option('-q', '--quotechar', action="store", dest="quotechar",
