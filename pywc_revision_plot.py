@@ -251,10 +251,15 @@ def main():
                 if opts.window and len(time) and len(ser) and len(tot):
                     time, ser, tot = collapse_values(time, ser, tot,
                                                      opts.window)
-
-                mean = float(sum(series)) / len(series)
+                try:
+                    mean = float(sum(series)) / len(series)
+                except ZeroDivisionError:
+                    mean = 0
                 #rel_mean is the mean for the period [opts.end, opts.start]
-                rel_mean = float(sum(ser)) / len(ser)
+                try:
+                    rel_mean = float(sum(ser)) / len(ser)
+                except ZeroDivisionError:
+                    rel_mean = 0
 
                 if opts.perc:
                     try:
