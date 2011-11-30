@@ -254,12 +254,12 @@ def main():
                 try:
                     mean = float(sum(series)) / len(series)
                 except ZeroDivisionError:
-                    mean = 0
+                    continue
                 #rel_mean is the mean for the period [opts.end, opts.start]
                 try:
                     rel_mean = float(sum(ser)) / len(ser)
                 except ZeroDivisionError:
-                    rel_mean = 0
+                    continue
 
                 if opts.perc:
                     try:
