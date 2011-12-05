@@ -252,13 +252,18 @@ def main():
                         time, ser, tot = smooth_values(time, ser, tot,
                                                        opts.smooth)
 
-                    if opts.window and len(time) and len(ser) and len(tot):
-                        time, ser, tot = collapse_values(time, ser, tot,
-                                                         opts.window)
-
+                if opts.window and len(time) and len(ser) and len(tot):
+                    time, ser, tot = collapse_values(time, ser, tot,
+                                                     opts.window)
+                try:
                     mean = float(sum(series)) / len(series)
-                    #rel_mean is the mean for the period [opts.end, opts.start]
+                except ZeroDivisionError:
+                    continue
+                #rel_mean is the mean for the period [opts.end, opts.start]
+                try:
                     rel_mean = float(sum(ser)) / len(ser)
+                except ZeroDivisionError:
+                    continue
 
                     if opts.perc:
                         try:
