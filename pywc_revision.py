@@ -24,6 +24,7 @@ from revisions_page import HistoryRevisionsPageProcessor, dumps_checker
 from pywc import PyWC
 import csv
 from django.utils.encoding import smart_str
+import os
 
 
 class PyWC(PyWC):
@@ -181,6 +182,10 @@ def main():
     namespaces = [x[1] for x in [(0, "Normal")] + mwlib.get_namespaces(src)]
     src.close()
     src = deflate(xml)
+
+    if os.path.exists(output):
+        logging.error("File %s already exists!", output)
+        sys.exit(0)
 
     out = open(output, 'w')
     processor = PyWCProcessor(tag=tag, lang=lang, dic=dic,
