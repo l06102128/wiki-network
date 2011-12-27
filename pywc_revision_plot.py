@@ -252,64 +252,64 @@ def main():
                         time, ser, tot = smooth_values(time, ser, tot,
                                                        opts.smooth)
 
-                if opts.window and len(time) and len(ser) and len(tot):
-                    time, ser, tot = collapse_values(time, ser, tot,
-                                                     opts.window)
-                try:
-                    mean = float(sum(series)) / len(series)
-                except ZeroDivisionError:
-                    continue
-                #rel_mean is the mean for the period [opts.end, opts.start]
-                try:
-                    rel_mean = float(sum(ser)) / len(ser)
-                except ZeroDivisionError:
-                    continue
-
-                if opts.perc:
+                    if opts.window and len(time) and len(ser) and len(tot):
+                        time, ser, tot = collapse_values(time, ser, tot,
+                                                         opts.window)
                     try:
-                        mean = float(sum(series)) / sum(totals)
-                        rel_mean = float(sum(ser)) / sum(tot)
+                        mean = float(sum(series)) / len(series)
                     except ZeroDivisionError:
-                        mean = 0
-                        rel_mean = 0
-                    # Calculate percentages
-                    ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
-                    # Set axis limit 0-1 IS IT GOOD OR BAD?
-                    #axis.set_ylim(0, 1)
-                    plt.ylabel("%")
+                        continue
+                    #rel_mean is the mean for the period [opts.end, opts.start]
+                    try:
+                        rel_mean = float(sum(ser)) / len(ser)
+                    except ZeroDivisionError:
+                        continue
 
-                first_time = time[0].date()
-                last_time = time[-1].date()
-                plt.clf()
-                plt.subplots_adjust(bottom=0.25)
-                plt.xticks(rotation=90)
-                fig = plt.gcf()
-                fig.set_size_inches(11.7, 8.3)
-                axis = plt.gca()
-                axis.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d'))
-                axis.set_xlim(matplotlib.dates.date2num(first_time),
-                              matplotlib.dates.date2num(last_time))
-                if last_time - first_time < timedelta(days=30):
-                    axis.xaxis.set_major_locator(md.DayLocator(interval=1))
-                    axis.xaxis.set_minor_locator(md.DayLocator(interval=1))
-                else:
-                    axis.xaxis.set_minor_locator(md.MonthLocator(interval=1))
-                    rule = md.rrulewrapper(md.MONTHLY, interval=4)
-                    auto_loc = md.RRuleLocator(rule)
-                    axis.xaxis.set_major_locator(auto_loc)
-                axis.tick_params(labelsize='x-small')
-                plt.xlabel("Revisions Timestamp")
+                    if opts.perc:
+                        try:
+                            mean = float(sum(series)) / sum(totals)
+                            rel_mean = float(sum(ser)) / sum(tot)
+                        except ZeroDivisionError:
+                            mean = 0
+                            rel_mean = 0
+                        # Calculate percentages
+                        ser = [calc_perc(x, tot[k]) for k, x in enumerate(ser)]
+                        # Set axis limit 0-1 IS IT GOOD OR BAD?
+                        #axis.set_ylim(0, 1)
+                        plt.ylabel("%")
 
-                if len(time) and len(ser):
-                    if opts.window:
-                        time = [t.date() for t in time]
-                    logging.info("Mean: %f", mean)
-                    logging.info("Relative Mean: %f", rel_mean)
-                    plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
-                    plt.axhline(y=mean, color="r")
-                    plt.title("%s - %s - Mean: %.5f - Relative mean: %.5f" % \
-                              (ns, header[i], round(mean, 5),
-                               round(rel_mean, 5)))
+                    first_time = time[0].date()
+                    last_time = time[-1].date()
+                    plt.clf()
+                    plt.subplots_adjust(bottom=0.25)
+                    plt.xticks(rotation=90)
+                    fig = plt.gcf()
+                    fig.set_size_inches(11.7, 8.3)
+                    axis = plt.gca()
+                    axis.xaxis.set_major_formatter(md.DateFormatter('%Y-%m-%d'))
+                    axis.set_xlim(matplotlib.dates.date2num(first_time),
+                                  matplotlib.dates.date2num(last_time))
+                    if last_time - first_time < timedelta(days=30):
+                        axis.xaxis.set_major_locator(md.DayLocator(interval=1))
+                        axis.xaxis.set_minor_locator(md.DayLocator(interval=1))
+                    else:
+                        axis.xaxis.set_minor_locator(md.MonthLocator(interval=1))
+                        rule = md.rrulewrapper(md.MONTHLY, interval=4)
+                        auto_loc = md.RRuleLocator(rule)
+                        axis.xaxis.set_major_locator(auto_loc)
+                    axis.tick_params(labelsize='x-small')
+                    plt.xlabel("Revisions Timestamp")
+
+                    if len(time) and len(ser):
+                        if opts.window:
+                            time = [t.date() for t in time]
+                        logging.info("Mean: %f", mean)
+                        logging.info("Relative Mean: %f", rel_mean)
+                        plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
+                        plt.axhline(y=mean, color="r")
+                        plt.title("%s - %s - Mean: %.5f - Relative mean: %.5f" % \
+                                  (ns, header[i], round(mean, 5),
+                                   round(rel_mean, 5)))
                     pdf_pag.savefig()
     pdf_pag.close()
 
