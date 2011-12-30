@@ -149,7 +149,9 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
                                        key=itemgetter(1))[:20]
                     top_users = sorted(current["users"].items(),
                                        key=itemgetter(1))[:20]
-                    tmp = [keyword, current["total"], top_pages, top_users]
+                    tmp = [keyword, current["total"], top_pages,
+                           len(current["pages"]), top_users,
+                           len(current["users"])]
                     detailed_csv.writerow(tmp)
 
     def process_page(self, _):
@@ -287,6 +289,12 @@ def main():
     processor.clean = opts.clean
     processor.pywc.clean_wiki = processor.pywc.clean_html = opts.clean
     if opts.detailed_start and opts.detailed_end:
+        print """
+        You are going to run the script with detailed output on %d days.
+        This is going to produce some CSV files on your disk, one for each
+        day. Is this want you really want to do? [press enter to continue]
+        """ % (opts.detailed_end - opts.detailed_start).days
+        raw_input()
         processor.pywc.detailed = True
         processor.detailed_start = opts.detailed_start
         processor.detailed_end = opts.detailed_end
