@@ -63,8 +63,9 @@ class PyWC:
     clean_wiki = None        # Clean wiki syntax
     clean_html = None        # Clean HTML
     percentage = False       # Output as percentage
-    tuning = False           # Set tuning mode (no conditional
-                             # dictionary but a lot faster!)
+    tuning = False           # Set tuning mode (no conditional dictionary but
+                             # a lot faster!)
+    detailed = False         # detailed PYWC output per keyword
 
     rwords = re.compile(r"[\w']+")
     rqmarks = re.compile(r"\?")
@@ -91,6 +92,7 @@ class PyWC:
     _counter = 0       # Generic counter of how many pieces of
                        # text have been analized
     _keys = None
+    _detailed_data = None  # data only for detailed output
 
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
@@ -193,6 +195,8 @@ class PyWC:
             cat = []
             for regex in self.keywords:
                 if regex.search(word):
+                    if self.detailed:
+                        self._detailed_data[regex.pattern] += 1
                     for i in self.keywords[regex]:
                         res = self.cond_exp_regex[0].match(i)
                         if res:
@@ -236,7 +240,8 @@ class PyWC:
         into words and gives them to self.parse_word
         """
         self.delattrs(("_results", "_qmarks", "_unique", "_dic", "_sixltr",
-                       "_total", "_text", "_prev_word", "_prev cat"))
+                       "_total", "_text", "_prev_word", "_prev cat",
+                       "_detailed_data"))
         self._text = col
         #logging.info("--------PRIMA-----------")
         #logging.info(self._text)
@@ -251,6 +256,8 @@ class PyWC:
         #logging.info(self._text)
         #logging.info("-------------------")
         self._results = Counter()
+        if self.detailed:
+            self._detailed_data = Counter()
         self._qmarks = len([m for m in self.rqmarks.findall(self._text)])
         self._unique = set()
         self._dic = 0
@@ -267,6 +274,7 @@ class PyWC:
                 self._next_word = ""
             self.parse_word(word)
 
+        print "###### PYWC: ", self._detailed_data
         if self.tuning:
             for regex in self.keywords:
                 occ = len(regex.findall(self._text))
@@ -277,6 +285,8 @@ class PyWC:
                                 self._results[cat] += occ
                             except KeyError:
                                 logging.warn("Invalid category id %s", cat)
+                    if self.detailed:
+                        self._detailed_data[regex.pattern] += occ
                 self._dic += occ
 
         self.save()

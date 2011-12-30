@@ -25,7 +25,8 @@ from pywc import PyWC
 import csv
 from django.utils.encoding import smart_str
 import os
-
+from collections import Counter, defaultdict
+from operator import itemgetter
 
 class PyWC(PyWC):
     def __init__(self, dic, output):
@@ -56,6 +57,14 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
     namespaces = None
     data = None
     dic = None
+    detailed_start = None
+    detailed_end = None
+    detailed_ns = None
+    # revision related variables
+    _username = None
+    _ip = None
+    _sender = None
+    _skip_revision = False
 
     def __init__(self, **kwargs):
         super(PyWCProcessor, self).__init__(**kwargs)
@@ -63,8 +72,11 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         self.pywc = PyWC(self.dic, self.output)
         self.pywc.tuning = True
         self.data = {}
+        self.detailed_data = {}
 
     def save(self):
+        if self._skip_revision:
+            return
         if self._text is None: # difflib doesn't like NoneType
             self._text = ""
         if self.clean:
@@ -79,8 +91,7 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
             if not self.data.has_key(self._type):
                 self.data[self._type] = {}
             current = self.data[self._type]
-            date = mwlib.ts2dt(self._date)
-            date_str = date.strftime("%Y/%m/%d")
+            date_str = self._date.strftime("%Y/%m/%d")
             tmp = {"date": date_str,
                    "qmarks": self.pywc._qmarks,
                    "unique": len(self.pywc._unique),
@@ -99,16 +110,47 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
                         current[date_str][elem] += tmp[elem]
                 current[date_str]["edits"] += 1
             del tmp
+
+            if self.pywc.detailed and self._type == self.detailed_ns:
+                date_str = self._date.strftime("%Y/%m/%d")
+                if not self.detailed_data.has_key(date_str):
+                    self.detailed_data[date_str] = defaultdict(dict)
+                for keyword in self.pywc._detailed_data:
+                    occ = self.pywc._detailed_data[keyword]
+                    tmp = self.detailed_data[date_str][keyword]
+                    if not tmp:
+                        tmp = {}
+                        tmp["total"] = 0
+                        tmp["pages"] = Counter()
+                        tmp["users"] = Counter()
+                    tmp["total"] += occ
+                    tmp["pages"][self._title] += occ
+                    tmp["users"][self._sender] += occ
+                    self.detailed_data[date_str][keyword] = tmp
         else:
             logging.warn("Revert detected: skipping... (%s)", self._date)
         self._prev_text = self._text
 
     def flush(self):
-        for line in self.data:
-            for date in sorted(self.data[line]):
-                tmp = {"ns": line, "date": date}
-                tmp.update(self.data[line][date])
+        for ns in self.data:
+            for date in sorted(self.data[ns]):
+                tmp = {"ns": ns, "date": date}
+                tmp.update(self.data[ns][date])
                 self.pywc.csv_writer.writerow(tmp)
+        print self.detailed_data
+        for date in self.detailed_data:
+            filename = "%s_detailed_%s" % (self.output.name,
+                                           date.replace("/", ""))
+            with open(filename, "w") as f:
+                detailed_csv = csv.writer(f, delimiter="\t")
+                for keyword in self.detailed_data[date]:
+                    current = self.detailed_data[date][keyword]
+                    top_pages = sorted(current["pages"].items(),
+                                       key=itemgetter(1))[:20]
+                    top_users = sorted(current["users"].items(),
+                                       key=itemgetter(1))[:20]
+                    tmp = [keyword, current["total"], top_pages, top_users]
+                    detailed_csv.writerow(tmp)
 
     def process_page(self, _):
         self.count += 1
@@ -122,25 +164,70 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         pass
 
     def process_title(self, elem):
-        self.delattr(("_counter", "_type", "_title", "_skip", "_date", "text"))
+        self.delattr(("_counter", "_type", "_title", "_skip", "_date",
+                      "text", "_username", "_ip"))
+        if self._skip_revision:
+            return
         self._skip = False
         print elem.text
-        elem.text = smart_str(elem.text)
-        a_title = elem.text.split(':')
+        self._title = smart_str(elem.text)
+        a_title = self._title.split(':')
         if len(a_title) == 1:
             self._type = "Normal"
         else:
             self._type = a_title[0] if a_title[0] in self.namespaces \
                                     else "Normal"
 
+    def process_timestamp(self, elem):
+        if self._skip_revision:
+            return
+        revision_time = mwlib.ts2dt(elem.text)
+        if ((self.detailed_end and revision_time > self.detailed_end) or
+            (self.detailed_start and revision_time < self.detailed_start)):
+            self._skip_revision = True
+        else:
+            self._date = revision_time
+        del revision_time
+
+    def process_contributor(self, contributor):
+        if self._skip_revision:
+            return
+
+        if contributor is None:
+            self._skip_revision = True
+        self._sender = self._username or self._ip
+        self.delattr(("_username", "_ip"))
+        if not self._sender:
+            self.counter_deleted += 1
+            self._skip_revision = True
+
+    def process_revision(self, _):
+        skip = self._skip_revision
+        self._skip_revision = False
+        if skip:
+            return
+        self.delattr(("_username", "_ip", "_date"))
+        del skip
+
+    def process_username(self, elem):
+        if self._skip_revision:
+            return
+        self._username = elem.text
+
+    def process_ip(self, elem):
+        if self._skip_revision:
+            return
+        self._ip = elem.text
+
+
 def main():
     import optparse
+    from sonet.lib import SonetOption
+
     p = optparse.OptionParser(
-        usage="usage: %prog [options] input_file dictionary output_file")
-    p.add_option('-t', '--type', action="store", dest="type", default="all",
-                 help="Type of page to analize (content|talk|all)")
-    p.add_option('-e', '--encoding', action="store", dest="encoding",
-                 default="latin-1", help="encoding of the desired_list file")
+            usage="usage: %prog [options] input_file dictionary output_file",
+            option_class=SonetOption
+        )
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
     p.add_option('-T', "--timeout", action="store", dest="timeout", type=float,
@@ -148,11 +235,15 @@ def main():
     p.add_option('-c', '--clean', action="store_true", dest="clean",
                  default=False,
                  help="Cleans HTML, wiki syntax, acronyms and emoticons")
-    p.add_option('-C', '--charlimit', action="store", dest="charlimit",
-                 type="int", default=100000,
-                 help="Maximim characters per line (default=100000)")
-    p.add_option('-r', action="store_true", dest="regex", default=False,
-                 help="Use a dictionary composed by regex (default=false)")
+    p.add_option('-S', '--detailed-start', action="store",
+        dest='detailed_start', type="yyyymmdd", metavar="YYYYMMDD",
+        default=None, help="Detailed output start date")
+    p.add_option('-E', '--detailed-end', action="store",
+        dest='detailed_end', type="yyyymmdd", metavar="YYYYMMDD", default=None,
+        help="Detailed output end date")
+    p.add_option('-n', '--detailed-namespace', action="store",
+                 dest="detailed_ns", default="Normal",
+                 help="Namespace of desired detailed data (default: Normal)")
     opts, files = p.parse_args()
 
     if len(files) != 3:
@@ -178,7 +269,8 @@ def main():
         src = deflate(xml)
 
     translation = get_translations(src)
-    tag = get_tags(src, tags='page,title,revision,timestamp,text,redirect')
+    tag = get_tags(src, tags=('page,title,revision,timestamp,text,redirect,'
+                              'contributor,username,ip'))
     namespaces = [x[1] for x in [(0, "Normal")] + mwlib.get_namespaces(src)]
     src.close()
     src = deflate(xml)
@@ -191,13 +283,14 @@ def main():
     processor = PyWCProcessor(tag=tag, lang=lang, dic=dic,
                               output=out, userns=translation['User'])
     processor.namespaces = namespaces
-    if opts.type == 'talk':
-        processor.get_articles = False
-    elif opts.type == 'content':
-        processor.get_talks = False
     processor.diff_timeout = opts.timeout
     processor.clean = opts.clean
     processor.pywc.clean_wiki = processor.pywc.clean_html = opts.clean
+    if opts.detailed_start and opts.detailed_end:
+        processor.pywc.detailed = True
+        processor.detailed_start = opts.detailed_start
+        processor.detailed_end = opts.detailed_end
+        processor.detailed_ns = opts.detailed_ns
 
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
