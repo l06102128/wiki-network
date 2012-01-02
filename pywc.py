@@ -274,7 +274,6 @@ class PyWC:
                 self._next_word = ""
             self.parse_word(word)
 
-        print "###### PYWC: ", self._detailed_data
         if self.tuning:
             for regex in self.keywords:
                 occ = len(regex.findall(self._text))

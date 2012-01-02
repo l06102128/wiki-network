@@ -137,7 +137,6 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
                 tmp = {"ns": ns, "date": date}
                 tmp.update(self.data[ns][date])
                 self.pywc.csv_writer.writerow(tmp)
-        print self.detailed_data
         for date in self.detailed_data:
             filename = "%s_detailed_%s" % (self.output.name,
                                            date.replace("/", ""))
