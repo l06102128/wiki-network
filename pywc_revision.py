@@ -199,7 +199,6 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
         self._sender = self._username or self._ip
         self.delattr(("_username", "_ip"))
         if not self._sender:
-            self.counter_deleted += 1
             self._skip_revision = True
 
     def process_revision(self, _):
