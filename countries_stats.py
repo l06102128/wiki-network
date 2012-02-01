@@ -26,15 +26,22 @@ import pygeoip
 from collections import Counter, OrderedDict
 import datetime
 from dateutil.rrule import rrule, MONTHLY
+from django.utils.encoding import smart_str
 
 class CountriesPageProcessor(HistoryPageProcessor):
     output = None
     data = None
+    per_page_data = {}
+    per_page_stats = None
+    exclude_countries = []
     gi = None
     countries = set()
     csv_writer = None
     _skip = None
     _country = None
+    _country_data = Counter()
+    _anon_edits = 0
+    _edits = 0
 
     def __init__(self, **kwargs):
         super(CountriesPageProcessor, self).__init__(**kwargs)
@@ -45,14 +52,21 @@ class CountriesPageProcessor(HistoryPageProcessor):
         """
         Flushes queue in the CSV output
         """
+        if self.per_page_data:
+            f = open(self.per_page_stats, "w")
+            for item in self.per_page_data.items():
+                csv_writer = csv.writer(f)
+                csv_writer.writerow([item[0]]+list(item[1]))
+            f.close()
+
         f = open(self.output, "w")
-        self.csv_writer = csv.DictWriter(f, ["date"] + list(self.countries))
-        self.csv_writer.writeheader()
+        csv_writer = csv.DictWriter(f, ["date"] + list(self.countries))
+        csv_writer.writeheader()
         for date in self.data:
             to_write = Counter(date=date)
             to_write.update(dict([(x, 0) for x in self.countries]))
             to_write.update(self.data[date])
-            self.csv_writer.writerow(to_write)
+            csv_writer.writerow(to_write)
         f.close()
 
     def process_timestamp(self, elem):
@@ -75,8 +89,8 @@ class CountriesPageProcessor(HistoryPageProcessor):
                 self._country = "Unknown"
                 self.countries.add(self._country)
 
-
     def process_revision(self, _):
+        self._edits += 1
         if not self._country:
             return
 
@@ -102,17 +116,43 @@ class CountriesPageProcessor(HistoryPageProcessor):
 
         self.data[current_date][self._country] += 1
 
+        if self.per_page_stats:
+            self._country_data[self._country] += 1
+
         self._date = None
         self._country = None
 
+        self._anon_edits += 1
+
     def process_page(self, _):
+        if self.per_page_stats and \
+           (not self.min_edits or
+            self.min_edits > self._edits) and \
+           (not self.min_anon or
+            self.anon_edits > self._anon_edits):
+
+            output = []
+            most_common = self._country_data.most_common(5)
+            if not (most_common and
+                    most_common[0][0] in self.exclude_countries):
+                for country, edits in most_common:
+                    if edits:
+                        output += [country,
+                                   edits,
+                                   float(edits) / float(self._anon_edits)]
+                        self.per_page_data[smart_str(self._title)] = output
+        self._anon_edits = 0
+        self._edits = 0
+        self._country_data = Counter()
+        self.skip = False
+
+    def process_title(self, elem):
+        self._title = elem.text
+        self.skip = False
+
+    def process_redirect(self, elem):
         pass
 
-    def process_redirect(self, _):
-        pass
-
-    def process_title(self, _):
-        pass
 
 def dumps_checker(dump_name):
     """
@@ -134,6 +174,17 @@ def main():
         usage="usage: %prog [options] input_file geoip_db output_file")
     p.add_option('-v', action="store_true", dest="verbose", default=False,
                  help="Verbose output (like timings)")
+    p.add_option('-p', '--per-page', action="store",
+                 dest="per_page_stats", help="Per page stats output")
+    p.add_option('-e', '--min-edits', action="store", type=int,
+                 dest="min_edits",
+                 help="Skip if page has less than min-edit edits")
+    p.add_option('-a', '--min-anon', action="store", type=int,
+                 dest="min_anon",
+                 help="Skip if page has less than min-anon anonymous edits")
+    p.add_option('-E', '--exclude', action="store",
+                 dest="exclude_countries",
+                 help="Countries to exclude, colon (;) separated")
     opts, files = p.parse_args()
 
     if len(files) != 3:
@@ -169,6 +220,12 @@ def main():
                                        userns=translation['User'],
                                        geoip=geoip_db
                                       )
+    if opts.per_page_stats:
+        processor.per_page_stats = opts.per_page_stats
+    if opts.exclude_countries:
+        processor.exclude_countries = opts.exclude_countries.split(";")
+    processor.min_edits = opts.min_edits
+    processor.min_anon = opts.min_anon
     with Timr('Processing'):
         processor.start(src) ## PROCESSING
     processor.flush()
