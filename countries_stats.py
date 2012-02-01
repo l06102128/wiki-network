@@ -36,7 +36,8 @@ class CountriesPageProcessor(HistoryPageProcessor):
     exclude_countries = []
     gi = None
     countries = set()
-    csv_writer = None
+    min_edits = None
+    min_anon = None
     _skip = None
     _country = None
     _country_data = Counter()
@@ -127,9 +128,9 @@ class CountriesPageProcessor(HistoryPageProcessor):
     def process_page(self, _):
         if self.per_page_stats and \
            (not self.min_edits or
-            self.min_edits > self._edits) and \
+            self.min_edits <= self._edits) and \
            (not self.min_anon or
-            self.anon_edits > self._anon_edits):
+            self.min_anon <= self._anon_edits):
 
             output = []
             most_common = self._country_data.most_common(5)
