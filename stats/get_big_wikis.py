@@ -24,8 +24,9 @@ def main():
 
         wiki["_id"] = wiki["id"]
         del wiki["id"]
-        if not wiki["activeusers"]:
-            wiki["activeusers"] = 0
+        if wiki.has_key("activeusers"):
+            if wiki["activeusers"]:
+                wiki["activeusers"] = 0
 
         bws = BigWikiStat(**wiki)
 
