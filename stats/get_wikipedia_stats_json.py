@@ -72,7 +72,7 @@ def iter_project():
             a = td.find(lambda tag: tag.name == 'a' and
                         not tag.get('class') and not tag.get('id'))
             if a:
-                link = a.get('href')
+                link = "http:%s" % a.get('href')
                 lang, _type = (link.split('/')[-1]).split('.')[:2]
                 yield (link, lang, _type)
 
