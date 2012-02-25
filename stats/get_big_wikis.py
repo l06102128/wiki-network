@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 def big_wikis():
     from csv import reader
     from urllib import urlopen
@@ -12,6 +13,7 @@ def big_wikis():
     for l in r:
         yield dict(zip(keys, l))
 
+
 def main():
     import os
     os.environ['DJANGO_SETTINGS_MODULE'] = 'django_wikinetwork.settings'
@@ -21,16 +23,19 @@ def main():
         # there can't be an id field in a Django model (it's the pk)
         if not wiki:
             continue
-
-        wiki["_id"] = wiki["id"]
-        del wiki["id"]
-        if wiki.has_key("activeusers"):
+        try:
+            wiki["_id"] = wiki["id"]
+            del wiki["id"]
+        except KeyError:
+            continue
+        if "activeusers" in wiki:
             if wiki["activeusers"]:
                 wiki["activeusers"] = 0
 
         bws = BigWikiStat(**wiki)
 
         bws.save()
+
 
 if __name__ == "__main__":
     main()
