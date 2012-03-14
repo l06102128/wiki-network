@@ -36,11 +36,10 @@ templates = {}
 queue, done_queue = Queue(), Queue()
 
 
-
 ### CHILD PROCESS
 def merge_templates(big, small):
     for k, v in small.iteritems():
-        big.setdefault(k, 0) #set big[k] if not already defined
+        big.setdefault(k, 0)  #set big[k] if not already defined
         big[k] += v
 
 
@@ -60,7 +59,7 @@ def get_freq_dist(q, done_q, templates=None):
 
             ##TODO: replace this with collections.Counter
             merge_templates(templates, page_templates)
-        except TypeError: ## end
+        except TypeError:  # end
             done_q.put(templates)
 
             return
@@ -145,7 +144,7 @@ def main():
 
     print >> sys.stderr, "end of XML processing"
 
-    queue.put(None) ## this STOPS the process
+    queue.put(None)  # this STOPS the process
     templates = done_queue.get()
     p.join()
 

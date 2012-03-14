@@ -48,6 +48,7 @@ groups = {
     'not_anonymous': {'anonymous_ne': True},
 }
 
+
 ## FUNCTIONS
 def top(l, nelem=5, accuracy=10):
     #TODO: if l is a numpy array use numpy.array.sort() instead of sorted
@@ -61,6 +62,7 @@ def top(l, nelem=5, accuracy=10):
         else:
             format = '%%.%df' % (accuracy,)
         return ', '.join(format % e for e in sorted(l, reverse=True)[:nelem])
+
 
 def create_option_parser():
     from optparse import OptionParser, OptionGroup
@@ -128,14 +130,14 @@ def main():
     g.time_slice_subgraph(start=options.start, end=options.end)
     g.invert_edge_attr('weight', 'length')
 
-    vn = len(g.g.vs) # number of vertexes
-    en = len(g.g.es) # number of edges
+    vn = len(g.g.vs)  # number of vertexes
+    en = len(g.g.es)  # number of edges
 
     timr = Timr()
 
     if options.as_table:
         tablr = Tablr()
-        tablr.start(1024*32, lang)
+        tablr.start(1024 * 32, lang)
 
     if options.group or options.users_role or options.histogram:
         for group_name, group_attr in groups.iteritems():
@@ -160,15 +162,14 @@ def main():
                                    if edge.target == edge.source])
 
             print " * nodes with out edges number: %d (%6f%%)" % (
-                nodes_with_outdegree, 100.*nodes_with_outdegree/vn)
+                nodes_with_outdegree, 100. * nodes_with_outdegree / vn)
             print " * nodes with in edges number: %d (%6f%%)" % (
-                nodes_with_indegree, 100.*nodes_with_indegree/vn)
+                nodes_with_indegree, 100. * nodes_with_indegree / vn)
             print " * max weights on edges : %s" % top(g.g.es['weight'])
 
             print " * self-loop edges: %d" % self_loop_edges
             #print " * diameter : %6f" % g.g.diameter(weights='length')
             #print " * average weight : %6f" % numpy.average(g.g.es['weight'])
-
 
     if options.density or options.reciprocity:
         with Timr('density&reciprocity'):
@@ -181,7 +182,6 @@ def main():
                 print " * %s : density : %.10f" % (cls, subgraph.density())
                 print " * %s : reciprocity : %.10f" % (cls,
                                                        subgraph.reciprocity())
-
 
     if options.degree:
         with Timr('degree'):
@@ -227,7 +227,6 @@ def main():
             #print " * #node in 5 max clusters/#all nodes: %s" % top(
             #    [1.*cluster_len/vn for cluster_len in size_clusters])
 
-
     if options.distance:
         with Timr('distance'):
             gg = sg.Graph(giant)
@@ -239,18 +238,15 @@ def main():
             #print "Average distance 2: %f" % giant.average_path_length(True,
             #                                                           False)
 
-
     if options.efficiency:
         with Timr('efficiency'):
             print " * efficiency: %f" % g.efficiency(weight='length')
-
 
     ##TODO: compute for centrality only if "all" or "degree"
     if (options.plot or options.histogram or options.power_law or
         options.centrality):
         with Timr('set weighted indegree'):
             g.set_weighted_degree()
-
 
     if options.centrality:
         timr.start('centrality')
@@ -265,32 +261,33 @@ def main():
 
         if "betweenness" in centralities:
             print >> sys.stderr, "betweenness"
-            g.g.vs['bw'] = g.g.betweenness(weights='length', directed = True)
+            g.g.vs['bw'] = g.g.betweenness(weights='length', directed=True)
 
         #g.g.vs['ev'] = g.g.evcent(weights='weight') # eigenvector centrality
 
         if 'pagerank' in centralities:
             print >> sys.stderr, "pagerank"
-            g.g.vs['pr'] = g.g.pagerank(weights='weight') # pagerank
+            g.g.vs['pr'] = g.g.pagerank(weights='weight')  # pagerank
 
         if 'degree' in centralities:
             print >> sys.stderr, "outdegree"
             g.set_weighted_degree(type=ig.OUT)
         #total_weights = sum(g.g.es['weight'])
-        max_edges = vn*(vn-1)
+        max_edges = vn * (vn - 1)
 
         for cls, vs in g.classes.iteritems():
             if not vs:
                 continue
 
             if "betweenness" in centralities:
-                norm_betweenness = numpy.array(g.classes[cls]['bw'])/max_edges
+                norm_betweenness = numpy.array(g.classes[cls]['bw']) \
+                                   / max_edges
                 print " * %s : average betweenness : %.10f" % (
                     cls, numpy.average(norm_betweenness))
                 print " * %s : stddev betweenness : %.10f" % (
                     cls, numpy.sqrt(numpy.var(norm_betweenness)))
                 print " * %s : max betweenness: %s" % (
-                    cls, top(numpy.array(g.classes[cls]['bw'])/max_edges))
+                    cls, top(numpy.array(g.classes[cls]['bw']) / max_edges))
 
             #print " * Average eigenvector centrality : %6f" % numpy.average(
             #    g.vs['ev'])
@@ -405,36 +402,35 @@ def main():
             #print len(g.g.vs), len(g.g.es)
 
             bots = g.g.vs.select(bot=True)
-            bots['color'] = ('purple',)*len(bots)
+            bots['color'] = ('purple',) * len(bots)
             logging.debug('bots: ok')
 
             anonyms = g.g.vs.select(anonymous=True)
-            anonyms['color'] = ('blue',)*len(anonyms)
+            anonyms['color'] = ('blue',) * len(anonyms)
 
             sysops = g.g.vs.select(sysop=True)
-            sysops['color'] = ('yellow',)*len(sysops)
+            sysops['color'] = ('yellow',) * len(sysops)
 
             bur_sysops = g.g.vs.select(bureaucrat=True, sysop=True)
-            bur_sysops['color'] = ('orange',)*len(bur_sysops)
+            bur_sysops['color'] = ('orange',) * len(bur_sysops)
 
-            g.g.vs['size'] = [math.sqrt(v['weighted_indegree']+1)*10 for v
+            g.g.vs['size'] = [math.sqrt(v['weighted_indegree'] + 1)*10 for v
                               in g.g.vs]
 
             logging.debug('plot: begin')
-            ig.plot(g.g, target=lang+"_general.png", bbox=(0, 0, 8000, 8000),
+            ig.plot(g.g, target=lang + "_general.png", bbox=(0, 0, 8000, 8000),
                     edge_color='grey', layout='drl')
             logging.debug('plot: end')
             weights = g.g.es['weight']
             max_weight = max(weights)
 
-            g.g.es['color'] = [(255.*e['weight']/max_weight, 0., 0.) for e
+            g.g.es['color'] = [(255. * e['weight'] / max_weight, 0., 0.) for e
                                in g.g.es]
             g.g.es['width'] = weights
 
-            ig.plot(g.g, target=lang+"_weighted_edges.png", bbox=(0, 0, 4000,
+            ig.plot(g.g, target=lang + "_weighted_edges.png", bbox=(0, 0, 4000,
                                                                   2400),
                     layout='fr', vertex_label=' ')
-
 
     if options.as_table:
         tablr.stop()
@@ -442,7 +438,6 @@ def main():
         #tablr.printHeader()
         #tablr.printData()
         tablr.saveInDjangoModel()
-
 
     if options.adjacency:
         giant = g.g.clusters().giant()
@@ -452,7 +447,6 @@ def main():
         destRec = "%swiki-%s-rec.csv" % (lang, date)
         sg.Graph(giant).writeAdjacencyMatrix(destAdj, 'username')
         sg.Graph(giant).writeReciprocityMatrix('username', destRec)
-
 
     if options.users_role:
         l = g.get_user_class('username', ('anonymous', 'bot', 'bureaucrat',
@@ -473,8 +467,8 @@ def main():
             with open(destCls % cls, 'w') as f:
                 for username in users:
                     print >> f, \
-                          ("%s,http://vec.wikipedia.org/w/index.php?title="+\
-                          "Discussion_utente:%s&action=history&offset="+\
+                          ("%s,http://vec.wikipedia.org/w/index.php?title=" + \
+                          "Discussion_utente:%s&action=history&offset=" + \
                           "20100000000001") % (username, username)
 
 

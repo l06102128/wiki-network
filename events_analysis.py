@@ -32,13 +32,13 @@ from sonet import lib
 initial_date = date(2000, 1, 1)
 
 
-def page_iter(lang = 'en', paginate=10000000, desired=None):
+def page_iter(lang='en', paginate=10000000, desired=None):
     events, conn = get_events_table()
 
     count_query = select([func.count(events.c.id)],
                events.c.lang == lang)
     s = select([events.c.title, events.c.data, events.c.talk,
-                events.c.total_editors,events.c.bot_editors,
+                events.c.total_editors, events.c.bot_editors,
                 events.c.anonymous_editors],
                 events.c.lang == lang).order_by(
         events.c.title, events.c.talk).limit(paginate)
@@ -57,7 +57,7 @@ def page_iter(lang = 'en', paginate=10000000, desired=None):
         for row in rs:
             yield (row[0],
                    deserialize(decompress(b64decode(row[1]))),
-                   row[2],row[3],row[4],row[5])
+                   row[2], row[3], row[4], row[5])
 
 
 def get_days_since(start_date, end_date, anniversary_date, td_list):
@@ -118,6 +118,7 @@ def get_days_since(start_date, end_date, anniversary_date, td_list):
 
     return counter
 
+
 def is_near_anniversary(creation, revision, range_):
     """
     >>> is_near_anniversary(date(2001, 9, 11), date(2005, 9, 19), 10)
@@ -166,16 +167,19 @@ def is_near_anniversary(creation, revision, range_):
         delta = (revision - anniversary).days
         return abs(delta) <= range_
 
+
 def get_first_revision(start_date, data):
     """
     >>> get_first_revision(date(2000,1,1), 2)
-    >>> get_first_revision(date(2000,1,1), {51: 'a', 20: 'b', 10: 'c', 123: 'd'})
+    >>> get_first_revision(date(2000,1,1),
+    ...                    {51: 'a', 20: 'b', 10: 'c', 123: 'd'})
     datetime.date(2000, 1, 11)
     """
     try:
         return start_date + timedelta(min(data))
     except TypeError:
         return
+
 
 def print_data_file(fn, dict_, s_date, e_date):
     """
@@ -191,11 +195,16 @@ def print_data_file(fn, dict_, s_date, e_date):
         for d in range(s_days, e_days + 1):
             try:
                 t = dict_[d]
-                wrt.writerow([(initial_date+timedelta(d)).strftime('%Y-%m-%d'),
-                        t[0],t[1],t[2]])
+                wrt.writerow(
+                    [(initial_date + timedelta(d)).strftime('%Y-%m-%d'),
+                     t[0], t[1], t[2]]
+                )
             except KeyError:
-                wrt.writerow([(initial_date+timedelta(d)).strftime('%Y-%m-%d'),
-                        0,0,0])
+                wrt.writerow(
+                    [(initial_date + timedelta(d)).strftime('%Y-%m-%d'),
+                     0, 0, 0]
+                )
+
 
 class EventsProcessor(HistoryPageProcessor):
     count_desired = []
@@ -203,7 +212,7 @@ class EventsProcessor(HistoryPageProcessor):
     count_revisions = 0
     creation_accumulator = {}
     csv_writer = None
-    desired_only = False ## search desired pages only
+    desired_only = False  # search desired pages only
     desired_pages = {}
     dump_date = None
     groups = None
@@ -244,21 +253,21 @@ class EventsProcessor(HistoryPageProcessor):
         ## used together with anniversary day in order to find
         ## days in anniversary's range
         self.td_list = [timedelta(i) for i in
-                        range(-self.range_,self.range_+1)]
+                        range(-self.range_, self.range_ + 1)]
 
         if not lib.find_executable('7z'):
-            raise Exception, 'Cannot find 7zip executable (7z)'
+            raise Exception('Cannot find 7zip executable (7z)')
 
         fn = kwargs['output_file'] + '.bz2'
 
         if path.isfile(fn):
-            raise Exception, 'Delete file ' + fn + ' before proceeding'
+            raise Exception('Delete file ' + fn + ' before proceeding')
 
         zip_process = Popen(['7z', 'a', '-tbzip2', '-mx=9', fn, '-si'],
                             stdin=PIPE, stderr=None)
 
         self.csv_writer = csv.DictWriter(zip_process.stdin,
-                                   fieldnames = self.keys_, delimiter=',',
+                                   fieldnames=self.keys_, delimiter=',',
                                    quotechar='"', quoting=csv.QUOTE_ALL)
 
         self.csv_writer.writeheader()
@@ -271,13 +280,13 @@ class EventsProcessor(HistoryPageProcessor):
     def set_desired(self, fn):
         ## save desired pages list
         for r in csv.reader(open(fn, 'rb')):
-            page = r[0].decode(self.encoding).replace('_',' ')
+            page = r[0].decode(self.encoding).replace('_', ' ')
             if page[0] == '#':
                 continue
 
             try:
                 self.desired_pages[page] = \
-                    date(int(r[1][:4]),int(r[1][5:7]),int(r[1][8:10]))
+                    date(int(r[1][:4]), int(r[1][5:7]), int(r[1][8:10]))
             except:
                 self.desired_pages[page] = None
 
@@ -325,7 +334,7 @@ class EventsProcessor(HistoryPageProcessor):
         des = self.desired_pages.keys() if self.desired_only else None
 
         for title, data, talk, te, be, ae in \
-            page_iter(lang=self.lang,desired=des):
+            page_iter(lang=self.lang, desired=des):
             ## check whether the page is an archive or not
             ## if it is a link, skip it!
             if is_archive(title):
@@ -338,7 +347,7 @@ class EventsProcessor(HistoryPageProcessor):
             self.__title = title
             self.__data = data
             self.__desired = self.is_desired(self.__title)
-            self.__type_of_page = talk ## 0 = article, 1 = talk
+            self.__type_of_page = talk  # 0 = article, 1 = talk
             ## unique editors
             ## skip editors belonging to not-to-be-analyzed groups
             self.__unique_editors = (
@@ -499,6 +508,7 @@ def create_option_parser():
     op.add_option('-e', '--encoding', action="store", dest="encoding",
                  default="latin-1", help="encoding of the desired_list file")
     return op
+
 
 def main():
 

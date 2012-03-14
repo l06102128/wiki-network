@@ -27,6 +27,7 @@ from zlib import compress
 from wbin import serialize
 from datetime import datetime as dt
 
+
 class HistoryEventsPageProcessor(HistoryPageProcessor):
     queue = None
     connection = None
@@ -100,8 +101,8 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
         ## first element is for total revisions, the second
         ## for revisions made by bot and the last one for
         ## anonymous' revisions
-        t = self._counter.get(self._date, [0,0,0])
-        t[0] += 1 ## increment total revisions
+        t = self._counter.get(self._date, [0, 0, 0])
+        t[0] += 1  # increment total revisions
         self._counter[self._date] = t
 
         del revision_time, t
@@ -121,7 +122,7 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
             if not u in self._editors:
                 self._editors[u] = role
 
-            if role: ## in case of a bot's contribution increment bot's edits
+            if role:  # in case of a bot's contribution increment bot's edits
                 self._counter[self._date][1] += 1
         except AttributeError:
             pass
@@ -137,8 +138,10 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
     def process_redirect(self, elem):
         self._skip = True
         if self._desired is True:
-            raise ValueError, "The page %s is a redirect. " % self._title + \
-                              "Pages in the desired list must not be redirects."
+            raise ValueError(
+                "The page %s is a redirect. " % self._title + \
+                "Pages in the desired list must not be redirects."
+            )
 
     def process_revision(self, _):
         self._skip_revison = False
@@ -153,7 +156,6 @@ class HistoryEventsPageProcessor(HistoryPageProcessor):
 def main():
     import optparse
     from sonet.lib import SonetOption
-    import csv
 
     p = optparse.OptionParser(
         usage="usage: %prog [options] file desired_list acceptance_ratio",
@@ -174,7 +176,8 @@ def main():
 
     opts, files = p.parse_args()
     if opts.verbose:
-        import sys, logging
+        import sys
+        import logging
         logging.basicConfig(stream=sys.stderr,
                             level=logging.DEBUG)
 
@@ -189,13 +192,13 @@ def main():
     deflate, _lineno = lib.find_open_for_this_file(xml)
 
     if _lineno:
-        src = deflate(xml, 51) # Read first 51 lines to extract namespaces
+        src = deflate(xml, 51)  # Read first 51 lines to extract namespaces
     else:
         src = deflate(xml)
 
     translation = get_translations(src)
-    tag = get_tags(src, tags='page,title,revision,'+ \
-                  'minor,timestamp,redirect,ip,username')
+    tag = get_tags(src, tags='page,title,revision,' + \
+                   'minor,timestamp,redirect,ip,username')
 
     src.close()
     src = deflate(xml)

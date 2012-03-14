@@ -14,7 +14,8 @@ classes = ('anonymous', 'bot', 'bureaucrat', 'sysop', 'normal user')
 tokenizer = nltk.PunktWordTokenizer()
 ## dictionary of frequency distributions
 fd = dict(zip(classes, [nltk.FreqDist() for _ in range(len(classes))]))
-dstpw = dict(zip(stopwords, [0]*len(stopwords)))
+dstpw = dict(zip(stopwords, [0] * len(stopwords)))
+
 
 def freq_dist(cls, msg):
     global fd
@@ -25,7 +26,7 @@ def freq_dist(cls, msg):
     fd[cls].update(text)
 
 
-def iter_csv(filename, _hasHeader = False):
+def iter_csv(filename, _hasHeader=False):
     from csv import reader
     fieldNames = None
 
@@ -77,8 +78,6 @@ def main():
         dest = args[1]        # dest dir name
     except IndexError:
         p.error('Missing arguments')
-
-
 
     for cls, text in (
         (cls, text) for cls, text in iter_roletext(

@@ -22,12 +22,13 @@ from django.utils.encoding import smart_str
 import logging
 from sonet.mediawiki import TextCleaner
 
+
 def get_revisions(title, csv_writer, lang, textcleaner,
                   startid=None, prev_text=""):
     api_base = 'http://%s.wikipedia.org/w/api.php' % lang
     options = {}
     options.update({
-        'action':'query',
+        'action': 'query',
         'prop': 'revisions',
         'rvlimit': 500,
         'titles': title,

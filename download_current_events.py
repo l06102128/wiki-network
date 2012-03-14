@@ -27,7 +27,7 @@ def get_data(output, lang="en", eititle="Template:Current", eicontinue=None):
     done = False
     api_base = 'http://%s.wikipedia.org/w/api.php' % lang
     options = {
-        'action':'query',
+        'action': 'query',
         'list': 'embeddedin',
         'eilimit': 500,
         'eititle': eititle,
@@ -49,6 +49,7 @@ def get_data(output, lang="en", eititle="Template:Current", eicontinue=None):
             done = True
     with open(output, "w") as f:
         f.writelines(articles)
+
 
 def main():
     import optparse

@@ -54,6 +54,7 @@ dsmile = {
     'cool': (r'8-?\)',),
 }
 
+
 def build_smile_re(dsmile):
     out = {}
     for name, lsmile in dsmile.items():
@@ -64,7 +65,8 @@ def build_smile_re(dsmile):
 
 re_smile = build_smile_re(dsmile)
 
-## r argument is just for caching
+
+# r argument is just for caching
 def remove_templates(text, r=re.compile(r"{{.*?}}")):
     """
     Remove Mediawiki templates from given text:
@@ -76,7 +78,8 @@ def remove_templates(text, r=re.compile(r"{{.*?}}")):
     """
     return r.sub("", text)
 
-## dsmile argument is just for caching
+
+# dsmile argument is just for caching
 def find_smiles(text):
     """
     Find smiles in text and returns a dictionary of found smiles
@@ -101,6 +104,7 @@ def find_smiles(text):
 
     return res
 
+
 def get_freq_dist(recv, send, fd=None, dcount_smile=None, classes=None):
     """
     Find word frequency distribution and count smile in the given text.
@@ -116,7 +120,6 @@ def get_freq_dist(recv, send, fd=None, dcount_smile=None, classes=None):
     dcount_smile : dict
         Smile counters
     """
-    from operator import itemgetter
     stopwords = frozenset(
         nltk.corpus.stopwords.words('italian')
         ).union(
@@ -139,7 +142,7 @@ def get_freq_dist(recv, send, fd=None, dcount_smile=None, classes=None):
     while 1:
         try:
             cls, msg = recv.recv()
-        except TypeError: ## end
+        except TypeError:  # end
             for cls in set(classes).difference(('all',)):
                 fd['all'].update(fd[cls])
                 dcount_smile['all'].update(dcount_smile[cls])
@@ -165,7 +168,8 @@ def get_freq_dist(recv, send, fd=None, dcount_smile=None, classes=None):
         fd[cls].update(tokens)
 
 #import cProfile as profile
-#def get_freq_dist_wrapper(recv, send, fd=None, dcount_smile=None, classes=None):
+#def get_freq_dist_wrapper(recv, send, fd=None, dcount_smile=None,
+#                          classes=None):
 #    profile.runctx("get_freq_dist(recv, send, dcount_smile, classes)",
 #        globals(), locals(), 'profile')
 
@@ -182,6 +186,7 @@ def get_class(g, cls):
     else:
         users = g.g.vs.select(**{cls: True})
     return users
+
 
 def process_page(elem, send):
     """
@@ -250,7 +255,7 @@ def main():
     lang, date, _ = mwlib.explode_dump_filename(xml)
     g = sg_load(rich_fn)
     user_classes = dict(g.get_user_class('username',
-                                  ('anonymous', 'bot', 'bureaucrat','sysop')))
+                                  ('anonymous', 'bot', 'bureaucrat', 'sysop')))
 
     p = Process(target=get_freq_dist, args=(p_receiver, done_p_sender))
     p.start()
@@ -270,7 +275,7 @@ def main():
                     partial_process_page)
     logging.info('Users missing in the rich file: %d', count_missing)
 
-    p_sender.send(0) ## this STOPS the process
+    p_sender.send(0)  # this STOPS the process
 
     print >> sys.stderr, "end of parsing"
 

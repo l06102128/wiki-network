@@ -15,21 +15,20 @@
 
 from sonet.mediawiki import HistoryPageProcessor, \
                             get_translations, get_tags, \
-                            explode_dump_filename, \
-                            ts2dt
+                            explode_dump_filename
 from sonet import lib
-from django.utils.encoding import smart_str
 import csv
 import sys
 import logging
 from sonet.timr import Timr
-from collections import Counter
+
 
 def perc(x, y):
     try:
-        return round(float(x)/float(y), 3)
+        return round(float(x) / float(y), 3)
     except ZeroDivisionError:
         return 0.0
+
 
 class GenderPageProcessor(HistoryPageProcessor):
     output = None
@@ -245,7 +244,7 @@ def main():
                                     min_edits=opts.min_edits
                                    )
     with Timr('Processing'):
-        processor.start(src) ## PROCESSING
+        processor.start(src)  # PROCESSING
     processor.flush()
     out.close()
 
