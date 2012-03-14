@@ -28,6 +28,7 @@ import datetime
 from dateutil.rrule import rrule, MONTHLY
 from django.utils.encoding import smart_str
 
+
 class CountriesPageProcessor(HistoryPageProcessor):
     output = None
     data = None
@@ -57,7 +58,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
             f = open(self.per_page_stats, "w")
             for item in self.per_page_data.items():
                 csv_writer = csv.writer(f)
-                csv_writer.writerow([item[0]]+list(item[1]))
+                csv_writer.writerow([item[0]] + list(item[1]))
             f.close()
 
         f = open(self.output, "w")
@@ -132,7 +133,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
            (not self.min_anon or
             self.min_anon <= self._anon_edits):
 
-            output = []
+            output = [self._edits, self._anon_edits]
             most_common = self._country_data.most_common(5)
             if not (most_common and
                     most_common[0][0] in self.exclude_countries):
@@ -228,7 +229,7 @@ def main():
     processor.min_edits = opts.min_edits
     processor.min_anon = opts.min_anon
     with Timr('Processing'):
-        processor.start(src) ## PROCESSING
+        processor.start(src)  # PROCESSING
     processor.flush()
 
 
