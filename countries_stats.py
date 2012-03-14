@@ -23,7 +23,7 @@ import sys
 import logging
 from sonet.timr import Timr
 import pygeoip
-from collections import Counter, OrderedDict
+from collections import Counter
 import datetime
 from dateutil.rrule import rrule, MONTHLY
 from django.utils.encoding import smart_str
@@ -32,23 +32,24 @@ from django.utils.encoding import smart_str
 class CountriesPageProcessor(HistoryPageProcessor):
     output = None
     data = None
-    per_page_data = {}
     per_page_stats = None
-    exclude_countries = []
+    exclude_countries = None
     gi = None
-    countries = set()
     min_edits = None
     min_anon = None
-    _skip = None
-    _country = None
-    _country_data = Counter()
-    _anon_edits = 0
-    _edits = 0
 
     def __init__(self, **kwargs):
         super(CountriesPageProcessor, self).__init__(**kwargs)
         self.gi = pygeoip.GeoIP(kwargs["geoip"])
-        self.data = OrderedDict()
+        self.data = {}
+        self.exclude_countries = self.exclude_countries or []
+        self.per_page_data = {}
+        self.countries = set()
+        self._skip = None
+        self._country = None
+        self._country_data = Counter()
+        self._anon_edits = 0
+        self._edits = 0
 
     def flush(self):
         """
@@ -64,7 +65,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
         f = open(self.output, "w")
         csv_writer = csv.DictWriter(f, ["date"] + list(self.countries))
         csv_writer.writeheader()
-        for date in self.data:
+        for date in sorted(self.data):
             to_write = Counter(date=date)
             to_write.update(dict([(x, 0) for x in self.countries]))
             to_write.update(self.data[date])
@@ -100,20 +101,22 @@ class CountriesPageProcessor(HistoryPageProcessor):
 
         first_date = None  # 2001 date mismatch
         mismatch = False
-        for date in self.data:
-            first_date = date
-            break
-        if first_date and first_date > current_date:
-            mismatch = True
-            logging.warn("Date mismatch! Fixing... - %s %s", first_date,
-                         current_date)
+
+        if self.data and current_date not in self.data:
+            first_date = min(self.data)
+            if first_date > current_date:
+                mismatch = True
+                logging.warn("Date mismatch! Fixing... - %s %s", first_date,
+                             current_date)
 
         if not self.data or mismatch:  # populate dict with all dates
             start = self._date.date()
             end = datetime.date.today()
             for dt in rrule(MONTHLY, dtstart=start, until=end):
                 dt = dt.strftime("%Y/%m")
-                if not dt in self.data:
+                if dt in self.data:
+                    break
+                else:
                     self.data[dt] = Counter()
 
         self.data[current_date][self._country] += 1
@@ -121,7 +124,6 @@ class CountriesPageProcessor(HistoryPageProcessor):
         if self.per_page_stats:
             self._country_data[self._country] += 1
 
-        self._date = None
         self._country = None
 
         self._anon_edits += 1
@@ -146,6 +148,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
         self._anon_edits = 0
         self._edits = 0
         self._country_data = Counter()
+
         self.skip = False
 
     def process_title(self, elem):
