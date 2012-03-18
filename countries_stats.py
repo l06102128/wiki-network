@@ -111,6 +111,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
 
         if not self.data or mismatch:  # populate dict with all dates
             start = self._date.date()
+            start = datetime.date(start.year, start.month, 1)
             end = datetime.date.today()
             for dt in rrule(MONTHLY, dtstart=start, until=end):
                 dt = dt.strftime("%Y/%m")
