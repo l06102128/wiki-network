@@ -82,7 +82,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
             return
         try:
             self._country = self.gi.country_name_by_addr(elem.text)
-        except (pygeoip.GeoIPError, IndexError, KeyError):
+        except Exception:
             logging.warn("Skipping IP %s", elem.text)
         else:
             if self._country:
@@ -114,9 +114,7 @@ class CountriesPageProcessor(HistoryPageProcessor):
             end = datetime.date.today()
             for dt in rrule(MONTHLY, dtstart=start, until=end):
                 dt = dt.strftime("%Y/%m")
-                if dt in self.data:
-                    break
-                else:
+                if dt not in self.data:
                     self.data[dt] = Counter()
 
         self.data[current_date][self._country] += 1
