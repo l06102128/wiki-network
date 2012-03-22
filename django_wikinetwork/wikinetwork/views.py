@@ -1,10 +1,11 @@
+from django.http import HttpResponse
+from django.shortcuts import render_to_response
+from django_wikinetwork.wikinetwork.models import WikiRunData, \
+                                                  WikiRunGroupData, CeleryRun
 
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
-from django_wikinetwork.wikinetwork.models import WikiRunData, WikiRunGroupData, CeleryRun
-import sys
+it_wikis = sorted(("scn", "nap", "fur", "eml", "lmo", "co", "pms", "vec",
+                   "it"))
 
-it_wikis = sorted(("scn", "nap", "fur", "eml", "lmo", "co", "pms", "vec", "it"))
 
 ## HELPERS
 def get_big(qs, limit=10000):
@@ -31,19 +32,16 @@ def format_percentage(number, ref):
 
     try:
         if type(number) in (types.IntType, ):
-            return '%d (%.1f%%)' % (number, 100.*number/ref)
+            return '%d (%.1f%%)' % (number, 100. * number / ref)
         else:
-            return '%.6f (%.1f%%)' % (number, 100.*number/ref)
+            return '%.6f (%.1f%%)' % (number, 100. * number / ref)
     except ZeroDivisionError:
         return float('nan')
 
 
-
 ## VIEWS
-
 def index(request):
     return render_to_response('index.html')
-
 
 
 def all(request, cls=None):
@@ -68,10 +66,13 @@ def all(request, cls=None):
         if not lang_all_run:
             continue
 
-        newer_date = str(int(max([e[0] for e in lang_all_run.values_list('date')])))
+        newer_date = str(
+            int(max([e[0] for e in lang_all_run.values_list('date')]))
+        )
 
         # all wikipedia run on this lang and on the most recent date
-        newer_run = lang_all_run.filter(date=newer_date).order_by('modified').values()
+        newer_run = lang_all_run.filter(date=newer_date).\
+                    order_by('modified').values()
 
         #join all values in a single model instance
         complete_run = {}
@@ -84,10 +85,12 @@ def all(request, cls=None):
         #TODO:
 
         complete_run['nodes_with_out_edges_number'] = format_percentage(
-            complete_run['nodes_with_out_edges_number'], complete_run['nodes_number']
+            complete_run['nodes_with_out_edges_number'],
+            complete_run['nodes_number']
         )
         complete_run['nodes_with_in_edges_number'] = format_percentage(
-            complete_run['nodes_with_in_edges_number'], complete_run['nodes_number']
+            complete_run['nodes_with_in_edges_number'],
+            complete_run['nodes_number']
         )
 
         data.append([complete_run.get(h, 'NA') for h in header])
@@ -100,18 +103,18 @@ def all(request, cls=None):
     })
 
 
-
 def group(request, cls=None):
     try:
-        from math import isnan #python 2.6
+        from math import isnan  #python 2.6
     except:
         from numpy import isnan
 
     # define
     ref_group = "all"
     values_to_be_referred = ("nodes_number", "mean_IN_degree_no_weights",
-        "mean_OUT_degree_no_weights", "density", "reciprocity", "average_betweenness",
-        "average_pagerank", "average_IN_degree_centrality_weighted",
+        "mean_OUT_degree_no_weights", "density", "reciprocity",
+        "average_betweenness", "average_pagerank",
+        "average_IN_degree_centrality_weighted",
         "average_OUT_degree_centrality_weighted", "total IN degree")
 
     # query
@@ -142,7 +145,7 @@ def group(request, cls=None):
     get_group = request.GET.get('group', "")
     if get_group:
         get_group_list = get_group.split(',')
-        group_list = sorted(set(get_group_list + [ref_group,]))
+        group_list = sorted(set(get_group_list + [ref_group, ]))
     else:
         group_list = sorted(set([e[0] for e in all_run.values_list('group')]))
 
@@ -164,12 +167,17 @@ def group(request, cls=None):
             if not group_lang_all_run:
                 continue
 
-            newer_date = str(int(max([e[0] for e in group_lang_all_run.values_list('date')])))
+            newer_date = str(int(max(
+                [e[0] for e in group_lang_all_run.values_list('date')]
+            )))
 
-            # all wikipedia run on this lang and for this group and on the most recent date
-            newer_run = group_lang_all_run.filter(date=newer_date).order_by('modified').values()
+            # all wikipedia run on this lang and for this group and on the
+            # most recent date
+            newer_run = group_lang_all_run.filter(date=newer_date).\
+                        order_by('modified').values()
 
-            #merge all the runs with the same (date, lang, group) in a single model instance
+            # merge all the runs with the same (date, lang, group) in a single
+            # model instance
             complete_run = {}
             for run in newer_run:
                 for h in header:
@@ -177,11 +185,11 @@ def group(request, cls=None):
                         complete_run[h] = run[h]
 
 
-            if isnan(complete_run.get("average_IN_degree_centrality_weighted",0)):
+            if isnan(complete_run.get("average_IN_degree_centrality_weighted", 0)):
                 complete_run['total IN degree'] = float('nan')
             else:
                 complete_run['total IN degree'] = int(round(
-                    complete_run.get("average_IN_degree_centrality_weighted",0)*complete_run.get("nodes_number",0)
+                    complete_run.get("average_IN_degree_centrality_weighted", 0) * complete_run.get("nodes_number",0)
                 ))
 
             # create percentage referred to the ref_group
@@ -209,7 +217,7 @@ def group(request, cls=None):
 
 
 def celery(request):
-    if 'lang' in request.GET: # If the form has been submitted...
+    if 'lang' in request.GET:  # If the form has been submitted...
         from django_wikinetwork.wikinetwork.tasks import AnalyseTask
 
         lang = request.GET['lang']
@@ -255,7 +263,6 @@ def celery(request):
 
 def task_list(request):
     from celery.result import AsyncResult
-    from celery.task import is_done
 
     runs = CeleryRun.objects.filter(hide=False)
     if runs:
@@ -287,6 +294,6 @@ def task_list(request):
 
 
 def celery_hide(request, c_id):
-    runs = CeleryRun.objects.filter(name=c_id).update(hide=True)
+    CeleryRun.objects.filter(name=c_id).update(hide=True)
 
     return HttpResponse("ok")

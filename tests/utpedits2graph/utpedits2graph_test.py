@@ -2,6 +2,7 @@ from utpedits2graph import HistoryPageProcessor
 import sonet.mediawiki as mwlib
 from sonet.lib import find_open_for_this_file
 from collections import defaultdict
+from django.utils.encoding import smart_str
 import unittest
 
 

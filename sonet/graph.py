@@ -1,6 +1,7 @@
 import igraph as ig
 import numpy
 
+
 def load(fn):
     """
     Load a graph from file with name fn.
@@ -18,7 +19,7 @@ class Graph(object):
         self.classes = {}
 
     def invert_edge_attr(self, source, dest):
-        self.g.es[dest] = 1./numpy.array(self.g.es[source])
+        self.g.es[dest] = 1. / numpy.array(self.g.es[source])
 
     def efficiency(self, weight=None):
         r"""Returns the efficiency of the graph
@@ -26,7 +27,7 @@ class Graph(object):
         @param weight: (string) specify which attribute to use.
                        Do not specify if the graph is not weighted
         """
-        isinstance(self.g, ig.Graph) # helper for wing
+        isinstance(self.g, ig.Graph)  # helper for wing
         effSum = 0.
         step = 100
         n = len(self.g.vs)
@@ -34,7 +35,7 @@ class Graph(object):
             #if not i % 100:
             #    print 'Step:', i
             #    print 1.*dSum*step/i
-            uplimit = min(n, i+step)
+            uplimit = min(n, i + step)
 
             # distances from nodes in range (i, i+step) to all the other nodes
             if weight:
@@ -45,10 +46,10 @@ class Graph(object):
 
             aDistances = numpy.array(aDistances)
 
-            effSum += (1./aDistances[aDistances.nonzero()]).sum()
+            effSum += (1. / aDistances[aDistances.nonzero()]).sum()
 
         #TODO: maybe there should be a factor of 2 somewhere (directed graph)
-        efficiency = effSum/(1.*n*(n-1))
+        efficiency = effSum / (1. * n * (n - 1))
         return efficiency
 
     def set_weighted_degree(self, type=ig.IN, remove_loops=True):
@@ -68,9 +69,10 @@ class Graph(object):
     def averageDistance(self, weight=None):
         r"""Returns the average shortest path length of the graph
 
-        @param weight: (string) specify which attribute to use. Do not specify if the graph is not weighted
+        @param weight: (string) specify which attribute to use.
+        Do not specify if the graph is not weighted
         """
-        isinstance(self.g, ig.Graph) # helper for wing
+        isinstance(self.g, ig.Graph)  # helper for wing
         dSum = 0.
         step = 1000
         n = len(self.g.vs)
@@ -78,7 +80,7 @@ class Graph(object):
             ##if not (i+1) % 100:
             ##    print 'Step:', i
             ##    print 1.*dSum*step/i
-            uplimit = min(n, i+step)
+            uplimit = min(n, i + step)
 
             # distances from nodes in range (i, i+step) to all the other nodes
             if weight:
@@ -89,9 +91,9 @@ class Graph(object):
 
             aDistances = numpy.array(aDistances)
 
-            dSum += 1.*aDistances.sum() / (n-1) / (uplimit - i)
+            dSum += 1. * aDistances.sum() / (n - 1) / (uplimit - i)
 
-        avg_dist = 1.*dSum / len(range(0, n, step))
+        avg_dist = 1. * dSum / len(range(0, n, step))
         return avg_dist
 
     def defineClass(self, cls, attr):
@@ -119,11 +121,11 @@ class Graph(object):
         with open(fn, 'w') as f:
             usernames = vs[label]
 
-            accumulate = ["",]
-            print >> f, ','.join(['',]+ usernames +['TOTAL',])
+            accumulate = ["", ]
+            print >> f, ','.join(['', ] + usernames + ['TOTAL', ])
 
             for i in range(len(vs)):
-                accumulate = [usernames[i],]
+                accumulate = [usernames[i], ]
 
                 msgs = matrix[i]
                 accumulate += [str(e) for e in msgs]
@@ -131,14 +133,13 @@ class Graph(object):
                 print >> f, ','.join(accumulate)
 
             # write TOTAL line
-            accumulate = ['TOTAL',]
+            accumulate = ['TOTAL', ]
 
             msgs = [sum([matrix[(j, i)] for j in range(len(vs))]) for i in
                     range(len(vs))]
             accumulate += [str(e) for e in msgs]
             accumulate.append(str(sum(msgs)))
             print >> f, ','.join(accumulate)
-
 
     def writeReciprocityMatrix(self, label, fn=None):
         """
@@ -149,7 +150,8 @@ class Graph(object):
         Foo,1,0,1
         TOTAL,2,1,3
 
-        It's obviousbly a simmetric matrix. On the main diagonal are there self-edges.
+        It's obviousbly a simmetric matrix. On the main diagonal are
+        there self-edges.
 
         >>> g = ig.Graph(n=3, directed=True)
         >>> g.vs['name'] = ['me', 'you', 'she']
@@ -175,9 +177,9 @@ class Graph(object):
         N = len(vs)
 
         # len(vs) x len(vs) matrix
-        rmatrix_data = [N*[0] for i in xrange(N)]
+        rmatrix_data = [N * [0] for i in xrange(N)]
         for i in xrange(N):
-            for j in xrange(i+1):
+            for j in xrange(i + 1):
                 if matrix[(i, j)] and matrix[(j, i)]:
                     rmatrix_data[i][j] = rmatrix_data[j][i] = 1
 
@@ -189,11 +191,11 @@ class Graph(object):
 
         labels = vs[label]
 
-        print >> f, ','.join(['',]+ labels +['TOTAL',])
+        print >> f, ','.join(['', ] + labels + ['TOTAL', ])
 
         rmatrix = ig.datatypes.Matrix(rmatrix_data)
         for i, label in enumerate(labels):
-            accumulate = [label,]
+            accumulate = [label, ]
 
             msgs = rmatrix[i]
             accumulate += [str(e) for e in msgs]
@@ -201,7 +203,7 @@ class Graph(object):
             print >> f, ','.join(accumulate)
 
         # write TOTAL line
-        accumulate = ['TOTAL',]
+        accumulate = ['TOTAL', ]
 
         msgs = [sum(rmatrix[(j, i)] for j in range(len(vs))) for i in
                 range(len(vs))]
@@ -215,7 +217,7 @@ class Graph(object):
     def getTopDegree(self, type=ig.IN, limit=None, lb=1, label='username'):
         from operator import itemgetter
         stype = 'weighted_%sdegree' % ('in' if type == ig.IN else 'out',)
-        kwargs = {stype+'_gt': lb}
+        kwargs = {stype + '_gt': lb}
 
         nodes = self.g.vs(**kwargs)
         for v in sorted(nodes, key=itemgetter(stype), reverse=True)[0:limit]:
@@ -239,7 +241,7 @@ class Graph(object):
                 yield (n[label], 'normal user')
 
     def remove_if(self, attrs):
-        kwargs = dict([(attr+'_ne', True) for attr in attrs])
+        kwargs = dict([(attr + '_ne', True) for attr in attrs])
         self.g = self.g.subgraph(self.g.vs.select(**kwargs))
 
     def time_slice_subgraph(self, start=None, end=None,
@@ -276,4 +278,3 @@ class Graph(object):
                     break
             if not found:
                 n['role'] = 'normal user'
-

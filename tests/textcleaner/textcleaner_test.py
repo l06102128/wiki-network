@@ -1,6 +1,7 @@
 import unittest
 from sonet.mediawiki import TextCleaner
 
+
 class TestTextCleaner(unittest.TestCase):
 
     def setUp(self):

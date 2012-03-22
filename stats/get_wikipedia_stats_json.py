@@ -23,7 +23,7 @@ def get_stats_wikipedia(link):
     such as http://en.wikipedia.org
     '''
     wikipedia_base_url = "/w/api.php?action=query&meta=siteinfo&siprop=statistics&format=json"
-    url = link+wikipedia_base_url
+    url = link + wikipedia_base_url
 
     print link
 

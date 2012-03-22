@@ -63,8 +63,8 @@ def collapse_values(timestamps, values, totals, radius):
             try:
                 time.append(curr[-1])  # Use last timestamp of the group
                 # Sum values and totals of the current group
-                ser.append(sum(values[i-len(curr):i]))
-                tot.append(sum(totals[i-len(curr):i]))
+                ser.append(sum(values[i - len(curr):i]))
+                tot.append(sum(totals[i - len(curr):i]))
             except IndexError:
                 time.append(j)
                 ser.append(values[i])
@@ -73,15 +73,17 @@ def collapse_values(timestamps, values, totals, radius):
             first = j
         i += 1
     time.append(curr[-1])
-    ser.append(sum(values[i-len(curr):i]))
-    tot.append(sum(totals[i-len(curr):i]))
+    ser.append(sum(values[i - len(curr):i]))
+    tot.append(sum(totals[i - len(curr):i]))
     return time, ser, tot
+
 
 def dt_average(timestamps):
     acc = 0
     for ts in timestamps:
         acc += time.mktime(ts.timetuple())
-    return dt.fromtimestamp(acc/len(timestamps))
+    return dt.fromtimestamp(acc / len(timestamps))
+
 
 def smooth_values(timestamps, values, totals, radius):
     """
@@ -100,14 +102,15 @@ def smooth_values(timestamps, values, totals, radius):
     ser = []
     tot = []
     k = radius / 2
-    for i in range(-(radius/2+1), len(timestamps) - (radius/2) + 1):
+    for i in range(-(radius / 2 + 1), len(timestamps) - (radius / 2) + 1):
         v = i if i > 0 else 0
-        time.append(dt_average(timestamps[v:v+k]))
-        ser.append(sum(values[v:v+k]))
-        tot.append(sum(totals[v:v+k]))
+        time.append(dt_average(timestamps[v:v + k]))
+        ser.append(sum(values[v:v + k]))
+        tot.append(sum(totals[v:v + k]))
         if k < radius:
             k += 1
     return time, ser, tot
+
 
 def _gen_data(line, id_col, ignorecols, onlycols):
     """
@@ -118,14 +121,16 @@ def _gen_data(line, id_col, ignorecols, onlycols):
            (not ignorecols or not i in ignorecols) and \
            (not onlycols or i in onlycols) and \
            i != len(line) - 1 and \
-           i != len(line) - 2: # don't count last two cols
+           i != len(line) - 2:  # don't count last two cols
             yield elem
+
 
 def calc_perc(x, tot):
     try:
         return float(x) / float(tot)
     except ZeroDivisionError:
         return 0
+
 
 def main():
     import optparse
@@ -220,7 +225,7 @@ def main():
 
     with Timr("Plotting"):
         for i, series in enumerate(mat):
-            logging.info("Plotting page %d", i+1)
+            logging.info("Plotting page %d", i + 1)
 
             # Don't plot zeros and skip zero revisions!
             #ser = [x for x in series if x != 0]
@@ -291,7 +296,7 @@ def main():
                 logging.info("Mean: %f", mean)
                 logging.info("Relative Mean: %f", rel_mean)
                 if header[i] == "negemo" or header[i] == "posemo":
-                    print ser # ONLY FOR TESTING, FIXME WHEN FINISHED
+                    print ser  # ONLY FOR TESTING, FIXME WHEN FINISHED
                 plt.plot(matplotlib.dates.date2num(time), ser, "b.-")
                 plt.axhline(y=mean, color="r")
                 plt.title("%s - Mean: %.5f - Relative mean: %.5f" % (header[i], round(mean, 5), round(rel_mean, 5)))

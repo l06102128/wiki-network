@@ -30,19 +30,16 @@ from django.utils.encoding import smart_str
 
 
 class CountriesPageProcessor(HistoryPageProcessor):
-    output = None
-    data = None
-    per_page_stats = None
-    exclude_countries = None
-    gi = None
-    min_edits = None
-    min_anon = None
-
     def __init__(self, **kwargs):
         super(CountriesPageProcessor, self).__init__(**kwargs)
+        self.output = None
+        self.per_page_stats = None
+        self.min_edits = None
+        self.min_anon = None
+
         self.gi = pygeoip.GeoIP(kwargs["geoip"])
         self.data = {}
-        self.exclude_countries = self.exclude_countries or []
+        self.exclude_countries = []
         self.per_page_data = {}
         self.countries = set()
         self._skip = None

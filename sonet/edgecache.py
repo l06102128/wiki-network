@@ -1,6 +1,7 @@
 import igraph as ig
 import logging
 
+
 class EdgeCache:
     """
     Acts as a cache to speed up graph creation
@@ -15,10 +16,10 @@ class EdgeCache:
     [(1, 0, 1), (1, 3, 3), (2, 0, 3)]
 
     """
-    edges = None      # a list of tuples: [(sender_id, recipient_id, 20), ...]
-    temp_edges = None # a dict of dicts : {'recipient': {'sender1': 20,
-                      #                    'sender2': 2}}
-    nodes = None      # a dict of {'username': vertex_id}
+    edges = None       # a list of tuples: [(sender_id, recipient_id, 20), ...]
+    temp_edges = None  # a dict of dicts : {'recipient': {'sender1': 20,
+                       #                    'sender2': 2}}
+    nodes = None       # a dict of {'username': vertex_id}
 
     def __init__(self):
         self.edges = []
@@ -105,7 +106,7 @@ class EdgeCache:
         ##       duplicat_analyze.py?root=pyrocleaner&view=markup
         from operator import itemgetter
 
-        g = ig.Graph(n = len(self.nodes), directed=True)
+        g = ig.Graph(n=len(self.nodes), directed=True)
         g.es[edge_label] = []
 
         g.vs[vertex_label] = [n.encode('utf-8') for n, _ in sorted(

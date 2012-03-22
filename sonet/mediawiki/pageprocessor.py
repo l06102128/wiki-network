@@ -3,6 +3,7 @@ import xml.etree.cElementTree as etree
 from datetime import date
 from random import random
 
+
 class PageProcessor(object):
     count = 0
     count_archive = 0

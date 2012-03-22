@@ -31,8 +31,8 @@ class WikiRunData(Model):
     # --power-law
     alpha_exp_of_the_power_law = FloatField(blank=True, null=True)
 
-    created = DateTimeField(auto_now_add = True)
-    modified = DateTimeField(auto_now = True)
+    created = DateTimeField(auto_now_add=True)
+    modified = DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u"%s, %s" % (self.lang, self.date)
@@ -79,11 +79,12 @@ class WikiRunGroupData(Model):
     # --power-law
     alpha_exp_IN_degree_distribution = FloatField(blank=True, null=True)
 
-    created = DateTimeField(auto_now_add = True)
-    modified = DateTimeField(auto_now = True)
+    created = DateTimeField(auto_now_add=True)
+    modified = DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u"%s-%s created on: %s" % (self.lang, self.date, self.created.isoformat())
+        return u"%s-%s created on: %s" % (self.lang, self.date,
+                                          self.created.isoformat())
 
 
 class WikiStat(Model):
@@ -101,8 +102,8 @@ class WikiStat(Model):
     images = IntegerField(blank=True, null=True)
     pages = IntegerField(blank=True, null=True)
 
-    created = DateTimeField(auto_now_add = True)
-    modified = DateTimeField(auto_now = True)
+    created = DateTimeField(auto_now_add=True)
+    modified = DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u"%s, stats of %s" % (self.lang, self.created.isoformat())
@@ -113,8 +114,8 @@ class WikiLang(Model):
 
     lang_group = CharField(max_length=20, blank=True, null=True)
 
-    created = DateTimeField(auto_now_add = True)
-    modified = DateTimeField(auto_now = True)
+    created = DateTimeField(auto_now_add=True)
+    modified = DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return self.lang
@@ -137,8 +138,9 @@ class BigWikiStat(Model):
     url = CharField(max_length=200, blank=True, null=True)
     ts = DateTimeField()
 
-    created = DateTimeField(auto_now_add = True)
-    modified = DateTimeField(auto_now = True)
+    created = DateTimeField(auto_now_add=True)
+    modified = DateTimeField(auto_now=True)
+
 
 class CeleryRun(Model):
     #celery related
@@ -148,8 +150,8 @@ class CeleryRun(Model):
     #wiki related
     lang = CharField(max_length=20, blank=False)
 
-    created = DateTimeField(auto_now_add = True)
-    modified = DateTimeField(auto_now = True)
+    created = DateTimeField(auto_now_add=True)
+    modified = DateTimeField(auto_now=True)
 
 
 class WikiPage(Model):
@@ -187,7 +189,8 @@ class WikiEvent(WikiPage):
         If you use postgresql, execute
         CREATE INDEX wikinetwork_wikievent_title_talk_LANG ON
             wikinetwork_wikievent (title, talk) WHERE lang='LANG';
-        and replace LANG with every language you want to store (eg.: en, it, de)
+        and replace LANG with every language you want to store
+        (eg.: en, it, de)
     """
 
     desired = BooleanField(default=False)

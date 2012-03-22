@@ -1,6 +1,7 @@
 from time import time
 import logging
 
+
 class Timr(object):
     counters = {}
     main_counter = None

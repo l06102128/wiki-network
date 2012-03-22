@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 from optparse import Option
 from copy import copy
 
-def yyyymmdd_to_datetime(yyyymmdd, td = None):
+
+def yyyymmdd_to_datetime(yyyymmdd, td=None):
     """
     Given a string containing a date in YYYYMMDD format, returns a datetime
     object.
@@ -23,6 +24,7 @@ def yyyymmdd_to_datetime(yyyymmdd, td = None):
         d += timedelta(td)
 
     return d
+
 
 def yyyymmdd_check(_, opt, value):
     from optparse import OptionValueError
@@ -88,10 +90,11 @@ def GzipFileExt(fn, lines=None):
         return stdout
     else:
         import mmap
-        m = mmap.mmap(-1, 16*1024)
+        m = mmap.mmap(-1, 16 * 1024)
         for _ in xrange(lines):
             line = stdout.readline()
-            if not line: break
+            if not line:
+                break
             m.write(line)
         m.seek(0)
         return m
@@ -110,10 +113,11 @@ def BZ2FileExt(fn, lines=None, parallel=True):
         return stdout
     else:
         import mmap
-        m = mmap.mmap(-1, 16*1024)
+        m = mmap.mmap(-1, 16 * 1024)
         for _ in xrange(lines):
             line = stdout.readline()
-            if not line: break
+            if not line:
+                break
             m.write(line)
         m.seek(0)
         return m
@@ -127,7 +131,7 @@ def SevenZipFileExt(fn, lines=None):
     from subprocess import Popen, PIPE
 
     if not find_executable('7z'):
-        raise Exception, 'Cannot find 7zip executable (7z)'
+        raise Exception('Cannot find 7zip executable (7z)')
 
     unzip_process = Popen(['7z', 'e', '-so', fn], stdout=PIPE, stderr=PIPE)
     stdout = unzip_process.stdout
@@ -136,10 +140,11 @@ def SevenZipFileExt(fn, lines=None):
         return stdout
     else:
         import mmap
-        m = mmap.mmap(-1, 16*1024)
+        m = mmap.mmap(-1, 16 * 1024)
         for _ in xrange(lines):
             line = stdout.readline()
-            if not line: break
+            if not line:
+                break
             m.write(line)
         m.seek(0)
         return m
@@ -179,7 +184,7 @@ def print_csv(d, filename, header=None, delimiter=","):
     print "File %s saved" % (filename,)
 
 
-def iter_csv(filename, _hasHeader = False):
+def iter_csv(filename, _hasHeader=False):
     from csv import reader
     fieldNames = None
 
@@ -209,6 +214,7 @@ def iter_csv(filename, _hasHeader = False):
 
     cf.close()
 
+
 def find_open_for_this_file(fn):
     ext = fn.split('.')[-1]
     _lineno = False
@@ -227,4 +233,3 @@ def find_open_for_this_file(fn):
         assert False, 'Wrong data file (unknown extension)'
 
     return (deflate, _lineno)
-

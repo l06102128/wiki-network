@@ -6,9 +6,11 @@ from django.forms import Textarea
 from datetime import date, timedelta
 from django.utils.safestring import mark_safe
 
+
 class DictTimeField(Textarea):
     def render(self, name, value, attrs=None):
-        if attrs is None: attrs = {}
+        if attrs is None:
+            attrs = {}
         attrs['readonly'] = 'readonly'
         if isinstance(value, dict):
             out = []
@@ -20,14 +22,16 @@ class DictTimeField(Textarea):
                     out.append("%s:\t%3d" % (sk, v))
                 else:
                     out.append("%s:\t%s" % (sk, str(v)))
-                    
+
             value = '</tr></td><tr><td>'.join(out)
 
         return mark_safe(u"<table><tr><td>%s</tr></td></table>" % (value,))
 
+
 class DictField(Textarea):
     def render(self, name, value, attrs=None):
-        if attrs is None: attrs = {}
+        if attrs is None:
+            attrs = {}
         attrs['readonly'] = 'readonly'
         if isinstance(value, dict):
             out = []
@@ -39,33 +43,38 @@ class DictField(Textarea):
 
         return mark_safe(u"<table><tr><td>%s</tr></td></table>" % (value,))
 
+
 class WikiRunDataAdmin(admin.ModelAdmin):
-    list_display    = ('lang', 'date', 'created')
-    list_filter     = ('lang', 'date', 'created')
-    date_hierarchy  = 'created'
+    list_display = ('lang', 'date', 'created')
+    list_filter = ('lang', 'date', 'created')
+    date_hierarchy = 'created'
+
 
 class WikiRunGroupDataAdmin(admin.ModelAdmin):
-    list_display    = ('lang', 'group', 'date', 'created')
-    list_filter     = ('lang', 'group', 'date', 'created')
-    date_hierarchy  = 'created'
+    list_display = ('lang', 'group', 'date', 'created')
+    list_filter = ('lang', 'group', 'date', 'created')
+    date_hierarchy = 'created'
+
 
 class WikiStatAdmin(admin.ModelAdmin):
-    list_display    = ('lang', 'family', 'created')
-    list_filter     = ('lang',)
-    date_hierarchy  = 'created'
+    list_display = ('lang', 'family', 'created')
+    list_filter = ('lang',)
+    date_hierarchy = 'created'
+
 
 class BigWikiStatAdmin(admin.ModelAdmin):
-    list_display    = ('name', 'created')
-    list_filter     = ('name',)
-    date_hierarchy  = 'created'
+    list_display = ('name', 'created')
+    list_filter = ('name',)
+    date_hierarchy = 'created'
+
 
 class WikiEventAdmin(admin.ModelAdmin):
-    fields          = ('title', 'lang', 'data', 'talk', 'desired')
-    list_display    = ('title', 'lang', 'talk')
-    list_filter     = ('lang',)
-    search_fields   = ('title',)
+    fields = ('title', 'lang', 'data', 'talk', 'desired')
+    list_display = ('title', 'lang', 'talk')
+    list_filter = ('lang',)
+    search_fields = ('title',)
     readonly_fields = ('lang', 'title', 'desired')
-    ordering        = ('lang', 'title', 'talk')
+    ordering = ('lang', 'title', 'talk')
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         if db_field.name in ('data'):
@@ -74,13 +83,14 @@ class WikiEventAdmin(admin.ModelAdmin):
         return super(WikiEventAdmin, self
                      ).formfield_for_dbfield(db_field, **kwargs)
 
+
 class WikiWordAdmin(admin.ModelAdmin):
-    fields          = ('lang', 'title', 'data', 'data_first', 'talk', 'desired')
-    list_display    = ('title', 'lang', 'talk')
-    list_filter     = ('lang',)
-    search_fields   = ('title',)
+    fields = ('lang', 'title', 'data', 'data_first', 'talk', 'desired')
+    list_display = ('title', 'lang', 'talk')
+    list_filter = ('lang',)
+    search_fields = ('title',)
     readonly_fields = ('lang', 'title', 'desired')
-    ordering        = ('lang', 'title', 'talk')
+    ordering = ('lang', 'title', 'talk')
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         if db_field.name in ('data_first', 'data'):
@@ -88,6 +98,7 @@ class WikiWordAdmin(admin.ModelAdmin):
 
         return super(WikiWordAdmin, self
                      ).formfield_for_dbfield(db_field, **kwargs)
+
 
 admin.site.register(WikiRunData, WikiRunDataAdmin)
 admin.site.register(WikiRunGroupData, WikiRunGroupDataAdmin)

@@ -66,7 +66,7 @@ class HistoryRevisionsPageProcessor(HistoryPageProcessor):
         Saves data to the queue.
         The queue is stored using self.flush()
         """
-        if self._text is None: # difflib doesn't like NoneType
+        if self._text is None:  # difflib doesn't like NoneType
             self._text = ""
         if self.clean:
             self._text = self.textcleaner.clean_all(self._text)
@@ -210,7 +210,7 @@ def main():
     processor.clean = opts.clean
     processor.set_desired_from_csv(desired_pages_fn, encoding=opts.encoding)
     with Timr('Processing'):
-        processor.start(src) ## PROCESSING
+        processor.start(src)  # PROCESSING
     processor.flush()
     out.close()
 

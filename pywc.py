@@ -269,7 +269,7 @@ class PyWC:
 
         for i, word in enumerate(words):
             try:
-                self._next_word = words[i+1]
+                self._next_word = words[i + 1]
             except IndexError:
                 self._next_word = ""
             self.parse_word(word)

@@ -1,6 +1,7 @@
 import sys
 import mmap
 
+
 class Tablr:
     cache = None
     end_pos = None
@@ -10,7 +11,7 @@ class Tablr:
         self.cache.close()
 
     def start(self, size, identifier):
-        self.cache = mmap.mmap(-1, size) #create an in-memory-file
+        self.cache = mmap.mmap(-1, size)  # create an in-memory-file
 
         sys.stdout = self.cache
         self.identifier = identifier
@@ -22,8 +23,8 @@ class Tablr:
 
     def printData(self):
         self.cache.seek(0)
-        table = [] # general values
-        groupTable = {} # group values
+        table = []  # general values
+        groupTable = {}  # group values
 
         while self.cache.tell() < self.end_pos:
             l = self.cache.readline()
@@ -47,7 +48,6 @@ class Tablr:
             for group_name, group_values in sorted(groupTable.iteritems()):
                 print "||'''%s_%s'''||%s||" % (group_name, self.identifier,
                                                '||'.join(group_values))
-
 
     def printHeader(self):
         self.cache.seek(0)
@@ -75,7 +75,6 @@ class Tablr:
         if groupTable:
             print "GROUP TABLES HEADER:"
             print "||'''id'''||'''%s'''||" % ("'''||'''".join(groupTable),)
-
 
     def saveInDjangoModel(self):
         import os
@@ -109,7 +108,6 @@ class Tablr:
                 data[tmp[0].strip().replace(' ', '_')
                      ] = tmp[1].split('(')[0].strip()
 
-
         data_model = WikiRunData(**data)
         data_model.save()
 
@@ -122,4 +120,3 @@ class Tablr:
 
                 groupdata_model = WikiRunGroupData(**group_values)
                 groupdata_model.save()
-
