@@ -13,7 +13,8 @@ setup(
     install_requires=('lxml', 'celery', 'django-celery', 'django_evolution',
                       'django', 'django_extensions', 'wirebin', 'nltk',
                       'sqlalchemy', 'nose', 'nose-exclude', 'BeautifulSoup',
-                      'pyyaml', 'simplejson', 'pygeoip', 'diff-match-patch'),
+                      'pyyaml', 'simplejson', 'pygeoip', 'diff-match-patch',
+                      'python-igraph'),
     #cmdclass = {'build_ext': build_ext},
     #ext_modules = ext_modules
 )
