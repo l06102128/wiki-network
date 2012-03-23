@@ -3,7 +3,8 @@ python:
 - "2.7"
 install:
 - sudo apt-get update
-- sudo apt-get install build-essential python-dev libigraph0-dev python-numpy python-matplotlib
+- sudo apt-get install build-essential python-dev libigraph0-dev
+- pip install numpy
 - python setup.py develop
 - python -c "import nltk; nltk.download('stopwords')"
 script:
