@@ -4,7 +4,7 @@ python:
 install:
 - sudo apt-get update
 - sudo apt-get install build-essential python-dev libigraph0-dev
-- pip install numpy
+- pip install numpy nose==1.0.0
 - python setup.py develop
 - python -c "import nltk; nltk.download('stopwords')"
 script:
