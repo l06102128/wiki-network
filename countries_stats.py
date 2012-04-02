@@ -32,7 +32,7 @@ from django.utils.encoding import smart_str
 class CountriesPageProcessor(HistoryPageProcessor):
     def __init__(self, **kwargs):
         super(CountriesPageProcessor, self).__init__(**kwargs)
-        self.output = None
+        self.output = kwargs["output"]
         self.per_page_stats = None
         self.min_edits = None
         self.min_anon = None
