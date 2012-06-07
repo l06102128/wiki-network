@@ -93,7 +93,8 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
             unique = len(self.pywc._unique)
             inserted_words = self.pywc._total
             if 100 <= inserted_words < 1000 and unique < inserted_words / 10:
-                continue
+                logging.warn("Vandalism detected! (%s)", self._date)
+                return
 
             if not self._type in self.data:
                 self.data[self._type] = {}
