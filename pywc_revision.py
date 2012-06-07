@@ -28,6 +28,7 @@ import os
 from collections import Counter, defaultdict
 from operator import itemgetter
 
+
 class PyWC(PyWC):
     def __init__(self, dic, output):
         self.set_dic(dic)
@@ -49,7 +50,7 @@ class PyWC(PyWC):
         self.csv_writer.writeheader()
 
     def save(self):
-       pass
+        pass
 
 
 class PyWCProcessor(HistoryRevisionsPageProcessor):
@@ -77,7 +78,7 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
     def save(self):
         if self._skip_revision:
             return
-        if self._text is None: # difflib doesn't like NoneType
+        if self._text is None:  # difflib doesn't like NoneType
             self._text = ""
         if self.clean:
             self._text = self.textcleaner.clean_all(self._text)
@@ -88,20 +89,26 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
                               self._text,
                               timeout=self.diff_timeout)[0]
             self.pywc.parse_col(diff)
-            if not self.data.has_key(self._type):
+
+            unique = len(self.pywc._unique)
+            inserted_words = self.pywc._total
+            if 100 <= inserted_words < 1000 and unique < inserted_words / 10:
+                continue
+
+            if not self._type in self.data:
                 self.data[self._type] = {}
             current = self.data[self._type]
             date_str = self._date.strftime("%Y/%m/%d")
             tmp = {"date": date_str,
                    "qmarks": self.pywc._qmarks,
-                   "unique": len(self.pywc._unique),
+                   "unique": unique,
                    "dic": self.pywc._dic,
                    "sixltr": self.pywc._sixltr,
                    "total": self.pywc._total}
             for x in self.pywc.categories:
                 tmp[x] = self.pywc._results[x]
 
-            if not current.has_key(date_str):
+            if not date_str in current:
                 current[date_str] = tmp
                 current[date_str]["edits"] = 1
             else:
@@ -113,7 +120,7 @@ class PyWCProcessor(HistoryRevisionsPageProcessor):
 
             if self.pywc.detailed and self._type == self.detailed_ns:
                 date_str = self._date.strftime("%Y/%m/%d")
-                if not self.detailed_data.has_key(date_str):
+                if not date_str in self.detailed_data:
                     self.detailed_data[date_str] = defaultdict(dict)
                 for keyword in self.pywc._detailed_data:
                     occ = self.pywc._detailed_data[keyword]
@@ -299,7 +306,7 @@ def main():
         processor.detailed_ns = opts.detailed_ns
 
     with Timr('Processing'):
-        processor.start(src) ## PROCESSING
+        processor.start(src)  # PROCESSING
     processor.flush()
     out.close()
 
