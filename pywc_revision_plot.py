@@ -20,11 +20,41 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as md
 from datetime import datetime as dt
 from datetime import timedelta
+from collections import defaultdict
 import csv
 import numpy as np
 import sys
 import logging
 from sonet.timr import Timr
+
+
+def group_values(timestamps, values, totals, group):
+    data = defaultdict(lambda: [0, 0])
+
+    print timestamps, values, totals
+
+    for i, timestamp in enumerate(timestamps):
+        if group == "month":
+            key = dt(1900, timestamp.month, 1)
+        elif group == "weekday":
+            key = dt(1900, 1, timestamp.weekday())
+        else:
+            raise ValueError("Group option has a wrong value!")
+        data[key][0] += values[i]
+        data[key][1] += totals[i]
+
+    time = []
+    ser = []
+    tot = []
+
+    print data
+
+    for k in sorted(data.keys()):
+        time.append(k)
+        ser.append(data[k][0])
+        tot.append(data[k][1])
+    return time, ser, tot
+
 
 # Quite ugly, if it's possible use groupby
 # [list(e) for k,e in groupby([11,12,13,21],(lambda x : x//10 ))]
@@ -75,12 +105,14 @@ def collapse_values(timestamps, values, totals, radius):
     tot.append(sum(totals[i-len(curr):i]))
     return time, ser, tot
 
+
 def dt_average(timestamps):
     import time
     acc = 0
     for ts in timestamps:
         acc += time.mktime(ts.timetuple())
     return dt.fromtimestamp(acc/len(timestamps))
+
 
 def smooth_values(timestamps, values, totals, radius):
     """
@@ -108,6 +140,7 @@ def smooth_values(timestamps, values, totals, radius):
             k += 1
     return time, ser, tot
 
+
 def _gen_data(line, skip, ignorecols, onlycols):
     """
     Generator to extract only desired columns from csv content
@@ -118,11 +151,13 @@ def _gen_data(line, skip, ignorecols, onlycols):
            i not in skip:
             yield elem
 
+
 def calc_perc(x, tot):
     try:
         return float(x) / float(tot)
     except ZeroDivisionError:
         return 0
+
 
 def main():
     import optparse
@@ -144,6 +179,8 @@ def main():
                  help="Use percentages instead of absolute value")
     p.add_option('-w', '--window', action="store", dest="window", type=int,
                  help="Collapse days")
+    p.add_option('-g', '--group', action="store", dest="group",
+                 help="Group by weekday/month")
     p.add_option('-S', '--sliding', action="store", dest="smooth", type=int,
                  help="Sliding window")
     p.add_option('--exclude-less-than', action="store",
@@ -255,6 +292,11 @@ def main():
                     if opts.window and len(time) and len(ser) and len(tot):
                         time, ser, tot = collapse_values(time, ser, tot,
                                                          opts.window)
+
+                    if opts.group and len(time) and len(ser) and len(tot):
+                        time, ser, tot = group_values(time, ser, tot,
+                                                      opts.group)
+
                     try:
                         mean = float(sum(series)) / len(series)
                     except ZeroDivisionError:
