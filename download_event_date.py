@@ -37,13 +37,16 @@ def get_event_date(title, csv_writer, lang):
     pages = result["query"]["pages"]
     for page in pages:
         content = pages[page]["revisions"][0]["*"]
-    date = ""
+    dates = []
     for line in content.split("\n"):
-        if re.match("", line):
-            result = re.search("(\d{4})", line)
-            if result:
-                date = result.group(0)
-    csv_writer.writerow([title, date])
+        result = re.search("date\s+?\=(.*)", line)
+        if result:
+            data = result.group(0)
+            if data:
+                result = re.search("(\d{4})", data)
+                if result:
+                    dates.append(result.group(0))
+    csv_writer.writerow([title, " ".join(set(dates))])
 
 
 def main():
