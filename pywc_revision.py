@@ -34,8 +34,8 @@ class PyWC(PyWC):
         self.set_dic(dic)
         self.csv_out = output
         try:
-            cat_names = [str(x[0]) for x in sorted([(int(a), b) for a, b in \
-                                               self.categories.items()])]
+            cat_names = [str(x[0]) for x in sorted([(int(a), b) for a, b in
+                                                    self.categories.items()])]
         except ValueError:
             cat_names = [str(x[0]) for x in sorted(self.categories.items())]
 

@@ -33,7 +33,7 @@ from sonet.mediawiki import TextCleaner
 from collections import Counter
 
 
-def perc(x, tot, perc):
+def perc(x, tot, perc=True):
     if perc:
         try:
             return float(x) / float(tot)
@@ -288,8 +288,6 @@ class PyWC:
                         self._detailed_data[regex.pattern] += occ
                 self._dic += occ
 
-        self.save()
-
     def parse_line(self, line):
         """
         Reads a single line of the csv file.
@@ -302,6 +300,7 @@ class PyWC:
             if len(col) <= self.max_char_limit:
                 if i != self.id_col and not i in self.ignorecols:
                     self.parse_col(col)
+                    self.save()
             else:
                 logging.warn(" Line %d:%d skipped "
                              "because longer than %d chars",

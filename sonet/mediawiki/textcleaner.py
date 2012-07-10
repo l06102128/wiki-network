@@ -38,19 +38,29 @@ class TextCleaner(object):
             (re.compile(r"\{{1,3}.+?\}{1,3}", re.DOTALL), ""),
             #(re.compile(r"[\w|\s]+:\w+(.+?\])?", re.U), ""))
             (re.compile(r"\|(.+)?(\s+?)?=(\s+?)?(.+)?"), ""),
-            (re.compile(r"May"), ""))
+            (re.compile(r"May"), ""),
+        )
+
+        self.clean_wiki_list_regex = (
+            # remove number list
+            (re.compile(r"^[\s:]*[#\*\d][^\n]+?$", re.MULTILINE), ""),
+        )
 
         # Stripping HTML tags and comments
         self.clean_html_regex = ((re.compile(r"<\!--.+?-->", re.DOTALL), ""),
                                 (re.compile(r"<.+?>"), ""),
                                 (re.compile(r"\&\w+;"), ""))
 
-    def clean_wiki_syntax(self, text):
+    def clean_wiki_syntax(self, text, wiki_lists=False):
         """
         Cleans text from wiki syntax
         """
         for regex, replace in self.clean_wiki_regex:
             text = regex.sub(replace, text)
+
+        if wiki_lists:
+            for regex, replace in self.clean_wiki_list_regex:
+                text = regex.sub(replace, text)
         return text
 
     def clean_html_syntax(self, text):
