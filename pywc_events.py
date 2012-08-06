@@ -17,7 +17,6 @@ import simplejson
 import urllib
 import sys
 import csv
-#from django.utils.encoding import smart_str
 import logging
 from sonet.mediawiki import TextCleaner
 from pywc import PyWC, perc
@@ -108,15 +107,21 @@ def main():
     pywc = PyWC()
     pywc.set_dic(files[0])
 
+    try:
+        cat_names = [str(x[0]) for x in sorted([(int(a), b) for a, b in
+                     pywc.categories.items()])]
+    except ValueError:
+        cat_names = [str(x[0]) for x in sorted(pywc.categories.items())]
+
     reverse_categories = {}
     for key, value in pywc.categories.iteritems():
         reverse_categories[value] = key
 
-    arcsin_fields = ["%s_arcsin" % key for key in reverse_categories]
+    arcsin_fields = ["%s_arcsin" % key for key in cat_names]
 
     fields = ["title", "total_edits", "unique_editors", "traumatic",
               "non_traumatic", "natural", "human", "len", "len_cleaned"] + \
-             reverse_categories.keys() + arcsin_fields + \
+             cat_names + arcsin_fields + \
              ["qmarks", "unique", "dic", "sixltr", "total"]
     csv_writer = csv.DictWriter(open(files[2], "w"), fields)
 
@@ -142,8 +147,8 @@ def main():
             "non_traumatic": line[4],
             "natural": line[5],
             "human": line[6],
-            "len": len(rev),
-            "len_cleaned": len(cleaned_rev),
+            "len": len(rev.split()),
+            "len_cleaned": len(cleaned_rev.split()),
             "qmarks": pywc._qmarks,
             "unique": len(pywc._unique),
             "dic": pywc._dic,
