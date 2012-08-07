@@ -80,7 +80,16 @@ def get_revision(revision_id, lang):
 
     url = api_base + '?' + urllib.urlencode(options)
     logging.info(url)
-    result = simplejson.load(urllib.urlopen(url))
+    result = None
+    i = 0
+    while result is None and i < 10:
+        i += 1
+        try:
+            result = simplejson.load(urllib.urlopen(url))
+        except Exception:
+            logging.error("Can't get JSON from %s", url)
+    if result is None:
+        return ""
 
     pages = result["query"]["pages"]
     return pages[pages.keys()[0]]["revisions"][0]["*"]
