@@ -108,10 +108,10 @@ def main():
     pywc.set_dic(files[0])
 
     try:
-        cat_names = [str(x[0]) for x in sorted([(int(a), b) for a, b in
+        cat_names = [str(x[1]) for x in sorted([(int(a), b) for a, b in
                      pywc.categories.items()])]
     except ValueError:
-        cat_names = [str(x[0]) for x in sorted(pywc.categories.items())]
+        cat_names = [str(x[1]) for x in sorted(pywc.categories.items())]
 
     reverse_categories = {}
     for key, value in pywc.categories.iteritems():
@@ -123,6 +123,7 @@ def main():
               "non_traumatic", "natural", "human", "len", "len_cleaned"] + \
              cat_names + arcsin_fields + \
              ["qmarks", "unique", "dic", "sixltr", "total"]
+
     csv_writer = csv.DictWriter(open(files[2], "w"), fields)
 
     csv_writer.writeheader()
